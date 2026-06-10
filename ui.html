@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>HTML to Figma</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --font-sans: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --p-bg:            #061112;
+  --p-surface:       #0e1f22;
+  --p-surface-2:     #0a181a;
+  --p-surface-hover: #14292d;
+  --p-border:        #1a3338;
+  --p-border-strong: #244448;
+  --p-ink:           #e8f5f6;
+  --p-ink-dim:       #8aa3a7;
+  --p-ink-dimmer:    #4f6669;
+  --cyan:            #47CAD8;
+  --cyan-soft:       rgba(71,202,216,0.12);
+  --cyan-soft-2:     rgba(71,202,216,0.24);
+  --cyan-hover:      #38a8b4;
+  --green:           #10b981;
+  --ease:            cubic-bezier(0.4,0,0.2,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:420px;height:660px;overflow:hidden;font-family:var(--font-sans);background:var(--p-bg);color:var(--p-ink);-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;border:none;background:transparent;color:inherit;}
+input,textarea{font-family:inherit;color:inherit;}
+input::placeholder,textarea::placeholder{color:var(--p-ink-dimmer);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--p-border-strong);border-radius:3px;}
+
+/* Shell */
+.plugin-shell{display:grid;grid-template-rows:44px 1fr 36px;width:420px;height:660px;background:var(--p-bg);overflow:hidden;}
+
+/* Header */
+.plugin-header{display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--p-border);flex-shrink:0;}
+.ph-logo{width:24px;height:24px;flex-shrink:0;}
+.ph-name{font-size:12px;font-weight:700;letter-spacing:-0.01em;line-height:1.2;}
+.ph-sub{font-size:9px;color:var(--p-ink-dimmer);}
+.ph-spacer{flex:1;}
+.ph-icon-btn{width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--p-ink-dim);transition:all 100ms var(--ease);}
+.ph-icon-btn:hover{background:var(--p-surface);color:var(--p-ink);}
+.ph-icon-btn.active{background:var(--cyan-soft);color:var(--cyan);}
+
+/* Content */
+.plugin-content{overflow:hidden;position:relative;background:var(--p-bg);}
+
+/* Footer */
+.plugin-footer{display:flex;align-items:center;gap:7px;padding:0 12px;border-top:1px solid var(--p-border);font-size:10px;color:var(--p-ink-dim);}
+.pf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.pf-spacer{flex:1;}
+
+/* Screens */
+.screen{position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column;}
+.screen.hidden{display:none!important;}
+.pc-inner{padding:16px 18px;flex:1;}
+
+/* Typography */
+.pc-h1{font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--p-ink);margin-bottom:3px;}
+.pc-sub{font-size:11px;color:var(--p-ink-dim);line-height:1.5;}
+.pc-eyebrow{font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--p-ink-dimmer);margin-bottom:6px;}
+
+/* Input field */
+.input-field{display:flex;align-items:center;height:38px;background:var(--p-surface);border:1px solid var(--p-border);border-radius:8px;padding:0 10px;gap:7px;font-size:12px;color:var(--p-ink);transition:border-color 150ms;}
+.input-field:focus-within{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-soft);}
+.input-field input{flex:1;background:transparent;border:none;outline:none;font-size:12px;color:var(--p-ink);min-width:0;}
+.if-prefix{color:var(--p-ink-dimmer);font-size:11px;font-family:var(--font-mono);white-space:nowrap;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:30px;padding:0 12px;border-radius:9999px;font-size:11px;font-weight:600;transition:all 120ms var(--ease);white-space:nowrap;}
+.btn-primary{background:var(--cyan);color:#04181b;box-shadow:0 3px 10px rgba(71,202,216,.22);}
+.btn-primary:hover{background:var(--cyan-hover);transform:translateY(-1px);box-shadow:0 6px 16px rgba(71,202,216,.3);}
+.btn-primary:disabled{background:var(--p-surface);color:var(--p-ink-dimmer);box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-secondary{background:var(--p-surface);color:var(--p-ink);border:1px solid var(--p-border);}
+.btn-secondary:hover{background:var(--p-surface-hover);}
+.btn-ghost{color:var(--p-ink-dim);border-radius:6px;}
+.btn-ghost:hover{color:var(--p-ink);background:var(--p-surface);}
+.btn-sm{height:24px;padding:0 8px;font-size:10px;}
+.btn-full{width:100%;height:36px;border-radius:8px;font-size:12px;}
+
+/* OR divider */
+.or-divider{display:flex;align-items:center;gap:10px;margin:12px 0;}
+.or-divider span:first-child,.or-divider span:last-child{flex:1;height:1px;background:var(--p-border);display:block;}
+.od-label{font-size:10px;color:var(--p-ink-dimmer);white-space:nowrap;}
+
+/* Source tabs */
+.source-tabs{display:flex;gap:3px;background:var(--p-surface-2);border:1px solid var(--p-border);border-radius:8px;padding:3px;margin-bottom:10px;}
+.stab{flex:1;height:26px;border-radius:5px;font-size:10px;font-weight:500;color:var(--p-ink-dimmer);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;gap:4px;transition:all 100ms;}
+.stab:hover{color:var(--p-ink);}
+.stab.active{background:var(--p-surface);color:var(--p-ink);box-shadow:0 1px 3px rgba(0,0,0,.2);}
+
+/* Dropzone */
+.dropzone{border:1.5px dashed var(--p-border-strong);border-radius:10px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all 150ms var(--ease);background:var(--p-surface-2);text-align:center;}
+.dropzone:hover{border-color:var(--cyan);background:rgba(71,202,216,.04);}
+.dropzone.drag-over{border-color:var(--cyan);background:rgba(71,202,216,.08);transform:scale(1.01);}
+.dz-icon-wrap{width:34px;height:34px;border-radius:9px;background:var(--p-surface);border:1px solid var(--p-border);display:flex;align-items:center;justify-content:center;color:var(--p-ink-dim);transition:all 150ms var(--ease);}
+.dropzone:hover .dz-icon-wrap{background:var(--cyan-soft);border-color:var(--cyan-soft-2);color:var(--cyan);}
+.dz-main{font-size:12px;font-weight:600;color:var(--p-ink);}
+.dz-sub{font-size:10px;color:var(--p-ink-dimmer);}
+.dz-actions{display:flex;gap:6px;margin-top:3px;}
+
+/* URL hint */
+
+/* File selected */
+.file-selected-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--p-surface);border:1px solid var(--p-border);border-radius:8px;}
+.fsb-icon{color:var(--cyan);flex-shrink:0;}
+.fsb-name{flex:1;font-size:10px;font-weight:500;color:var(--p-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);}
+.fsb-clear{width:18px;height:18px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:var(--p-ink-dimmer);}
+.fsb-clear:hover{background:var(--p-surface-hover);color:var(--p-ink);}
+
+/* Toggle row */
+.toggle-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--p-border);}
+.toggle-row:last-child{border-bottom:none;}
+.tr-icon{color:var(--p-ink-dim);flex-shrink:0;}
+.tr-text{flex:1;}
+.tr-name{font-size:11px;font-weight:500;color:var(--p-ink);}
+.tr-sub{font-size:10px;color:var(--p-ink-dimmer);margin-top:1px;}
+.toggle-switch{width:30px;height:17px;border-radius:9999px;background:var(--p-border-strong);position:relative;cursor:pointer;transition:background 150ms;flex-shrink:0;}
+.toggle-switch::after{content:"";position:absolute;left:2px;top:2px;width:13px;height:13px;border-radius:50%;background:var(--p-ink-dim);transition:all 150ms var(--ease);}
+.toggle-switch.on{background:var(--cyan);}
+.toggle-switch.on::after{left:15px;background:#04181b;}
+
+/* Card */
+.card{background:var(--p-surface);border:1px solid var(--p-border);border-radius:10px;padding:12px;}
+
+/* Recents */
+.recent-list{display:flex;flex-direction:column;gap:2px;}
+.recent-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;width:100%;text-align:left;transition:background 100ms;}
+.recent-item:hover{background:var(--p-surface);}
+.ri-thumb{width:32px;height:32px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ri-meta{flex:1;min-width:0;}
+.ri-title{font-size:11px;font-weight:600;color:var(--p-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ri-sub{font-size:9px;color:var(--p-ink-dimmer);display:flex;gap:4px;margin-top:1px;}
+.ri-time{font-size:9px;color:var(--p-ink-dimmer);white-space:nowrap;flex-shrink:0;}
+
+/* Error banner */
+.error-banner{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:7px;padding:8px 10px;font-size:11px;color:#f87171;margin-bottom:10px;display:none;}
+
+/* Parsing screen */
+.parse-hero{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 12px;}
+.parse-ring{position:relative;width:80px;height:80px;}
+.parse-ring svg{transform:rotate(-90deg);}
+.pr-bg{fill:none;stroke:var(--p-border);stroke-width:5;}
+.pr-fg{fill:none;stroke:var(--cyan);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .5s var(--ease);}
+.pr-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--p-ink);line-height:1;}
+.pr-text small{font-size:9px;font-weight:400;color:var(--p-ink-dimmer);margin-top:2px;}
+.parse-stages{display:flex;flex-direction:column;gap:1px;margin-top:4px;}
+.parse-stage{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;transition:background 150ms;font-size:11px;}
+.parse-stage.active{background:var(--p-surface);}
+.ps-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.parse-stage.done .ps-icon{background:var(--cyan-soft);color:var(--cyan);}
+.parse-stage.active .ps-icon{background:var(--cyan-soft);color:var(--cyan);}
+.parse-stage.idle .ps-icon{background:var(--p-surface);color:var(--p-ink-dimmer);}
+.ps-name{flex:1;font-weight:500;color:var(--p-ink);}
+.parse-stage.idle .ps-name{color:var(--p-ink-dimmer);}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+
+/* Done screen */
+.done-hero{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0 14px;text-align:center;}
+.done-icon{width:48px;height:48px;border-radius:50%;background:var(--cyan-soft);border:1.5px solid var(--cyan-soft-2);display:flex;align-items:center;justify-content:center;color:var(--cyan);margin-bottom:4px;}
+.done-title{font-size:15px;font-weight:700;letter-spacing:-0.01em;color:var(--p-ink);}
+.done-sub{font-size:11px;color:var(--p-ink-dim);}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.stat-tile{background:var(--p-surface);border:1px solid var(--p-border);border-radius:8px;padding:8px 4px;text-align:center;}
+.st-val{font-size:18px;font-weight:700;color:var(--cyan);letter-spacing:-0.02em;}
+.st-label{font-size:9px;color:var(--p-ink-dimmer);margin-top:1px;}
+.sync-card{display:flex;align-items:center;gap:10px;}
+.sync-icon{width:32px;height:32px;border-radius:8px;background:var(--cyan-soft);border:1px solid var(--cyan-soft-2);display:flex;align-items:center;justify-content:center;color:var(--cyan);flex-shrink:0;}
+
+/* Error screen */
+.error-hero{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 12px;text-align:center;}
+.eh-icon{width:44px;height:44px;border-radius:50%;background:rgba(248,113,113,.12);border:1.5px solid rgba(248,113,113,.25);display:flex;align-items:center;justify-content:center;color:#f87171;margin-bottom:4px;}
+
+/* Settings */
+.settings-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--p-border);}
+.settings-row:last-child{border-bottom:none;}
+.sr-text{flex:1;}
+.sr-name{font-size:11px;font-weight:500;color:var(--p-ink);}
+.sr-sub{font-size:10px;color:var(--p-ink-dimmer);}
+.seg{display:inline-flex;background:var(--p-surface);border:1px solid var(--p-border);border-radius:6px;padding:2px;gap:1px;}
+.seg button{height:20px;padding:0 6px;border-radius:4px;font-size:10px;font-weight:500;color:var(--p-ink-dim);}
+.seg button.active{background:var(--p-bg);color:var(--p-ink);}
+
+/* Back button */
+.back-btn{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;color:var(--p-ink-dim);}
+.back-btn:hover{background:var(--p-surface);color:var(--p-ink);}
+.mode-btn{border:1px solid var(--p-border);border-radius:5px;padding:4px 10px;font-size:10px;cursor:pointer;background:transparent;color:var(--p-ink);transition:all .15s;font-family:inherit;}
+.mode-btn.active{background:var(--cyan);color:#04181b;border-color:transparent;font-weight:600;}
+.mode-btn:hover:not(.active){background:var(--p-surface);}
+
+</style>
+</head>
+<body>
+<div class="plugin-shell">
+
+  <!-- Header -->
+  <div class="plugin-header">
+    <svg class="ph-logo" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="#47CAD8"/>
+      <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="url(#glogo)" opacity="0.6"/>
+      <path d="M9.2 9.2L6.5 12L9.2 14.8" stroke="#04181b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14.8 9.2L17.5 12L14.8 14.8" stroke="#04181b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="13.6" y1="7.6" x2="10.4" y2="16.4" stroke="#04181b" stroke-width="1.9" stroke-linecap="round"/>
+      <defs><linearGradient id="glogo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fff" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+      </linearGradient></defs>
+    </svg>
+    <div>
+      <div class="ph-name">HTML to Figma</div>
+      <div class="ph-sub">Reverse-engineer · convert · sync</div>
+    </div>
+    <div class="ph-spacer"></div>
+    <button class="ph-icon-btn" id="btn-history" onclick="goScreen('history')" title="Recent imports">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/><polyline points="12 7 12 12 15 14"/></svg>
+    </button>
+    <button class="ph-icon-btn" id="btn-settings" onclick="goScreen('settings')" title="Settings">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="plugin-content">
+
+    <!-- ══ START ══ -->
+    <div id="screen-start" class="screen">
+      <div class="pc-inner">
+        <div style="margin-bottom:14px">
+          <div class="pc-h1">Import a webpage</div>
+          <div class="pc-sub">Convert a live URL or a local .h2d / .html file into editable Figma frames.</div>
+        </div>
+
+        <div class="error-banner" id="error-banner"></div>
+
+        <!-- URL row -->
+        <div class="input-field" style="margin-bottom:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--p-ink-dimmer);flex-shrink:0"><path d="M10 14a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07L11 6"/><path d="M14 10a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07L13 18"/></svg>
+          <input id="url-input" placeholder="https://example.com" oninput="onUrlInput()" onkeydown="if(event.key==='Enter')handleUrlFetch()"/>
+          <button class="btn btn-primary btn-sm" id="btn-fetch" onclick="handleUrlFetch()" disabled>
+            Fetch
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+        <div style="margin-bottom:14px;padding-bottom:2px;">
+          <button onclick="toggleImportTip()" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:transparent;border:1px dashed var(--p-border);border-radius:7px;cursor:pointer;text-align:left;transition:border-color 150ms,border-radius 150ms;" id="import-tip-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--p-ink-dimmer);flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style="flex:1;font-size:10px;font-weight:500;color:var(--p-ink-dim);">What can I import?</span>
+            <svg id="import-tip-chevron" width="8" height="8" viewBox="0 0 24 24" fill="currentColor" style="color:var(--p-ink-dimmer);flex-shrink:0;transition:transform 150ms;"><polygon points="12,17 2,7 22,7"/></svg>
+          </button>
+          <div id="import-tip-body" style="display:none;font-size:10px;color:var(--p-ink-dimmer);line-height:1.6;background:transparent;border:1px dashed var(--p-border);border-top:none;border-radius:0 0 7px 7px;padding:8px 12px 10px;">
+            <div style="margin-bottom:3px;"><span style="color:#3ecf8e;margin-right:4px;">✓</span>Public pages, marketing sites, static &amp; SSR pages</div>
+            <div style="margin-bottom:3px;"><span style="color:#3ecf8e;margin-right:4px;">✓</span>Local dev servers (localhost)</div>
+            <div style="margin-bottom:3px;"><span style="color:#f87171;margin-right:4px;">✗</span>Login-gated apps — proxy has no session cookies</div>
+            <div style="margin-bottom:3px;"><span style="color:#f87171;margin-right:4px;">✗</span>Canvas / WebGL / video content</div>
+            <div style="margin-bottom:6px;"><span style="color:#f87171;margin-right:4px;">✗</span>Pages that load content only after user interaction</div>
+            <div style="padding-top:6px;border-top:1px solid var(--p-border);color:var(--p-ink-dim);">
+              <span style="font-weight:600;">For protected apps:</span> open in your browser → DevTools → right-click &lt;html&gt; → Copy outer HTML → save as <code style="font-family:var(--font-mono);font-size:9px;background:var(--p-surface-hover);padding:1px 4px;border-radius:3px;">.html</code> → open with the file picker below.
+            </div>
+            <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--p-border);color:var(--p-ink-dim);">
+              <span style="font-weight:600;">Built with v0, Bolt, or Lovable?</span> Export your project as HTML from the coding tool, then open it here — instantly turns your vibe-coded app into editable Figma layers you can iterate on or hand off.
+            </div>
+          </div>
+        </div>
+
+        <div class="or-divider"><span></span><span class="od-label">or open local file</span><span></span></div>
+
+        <!-- Dropzone -->
+        <div id="input-dropzone">
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <div class="dz-icon-wrap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="dz-main" id="dz-main">Drop .h2d or .html here</div>
+            <div class="dz-sub" id="dz-sub">Stays on your machine · click to browse</div>
+            <div class="dz-actions">
+              <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse file</button>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept=".h2d,.html,.htm" style="display:none" onchange="onFileSelect(event)">
+        </div>
+
+        <!-- File selected -->
+        <div id="file-selected" style="display:none">
+          <div class="file-selected-bar">
+            <svg class="fsb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>
+            <span class="fsb-name" id="file-selected-name"></span>
+            <button class="fsb-clear" onclick="clearFile()" title="Remove">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+
+        <!-- Viewport -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+          <span style="font-size:10px;color:var(--p-ink-dimmer);font-weight:500;flex-shrink:0">Viewport</span>
+          <div class="seg" id="viewport-seg">
+            <button class="active" data-vp="1440" onclick="pickViewport(this)">Desktop</button>
+            <button data-vp="768" onclick="pickViewport(this)">Tablet</button>
+            <button data-vp="375" onclick="pickViewport(this)">Mobile</button>
+          </div>
+        </div>
+
+        <!-- Conversion options -->
+        <div style="margin-top:10px">
+          <button class="btn-ghost" onclick="toggleOptions()" style="font-size:10px;padding:4px 6px;display:flex;align-items:center;gap:5px;color:var(--p-ink-dimmer)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Conversion options
+            <svg id="opt-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 150ms"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="opt-panel" style="display:none;margin-top:6px">
+            <div class="card" style="padding:6px 12px">
+              <div class="toggle-row">
+                <svg class="tr-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                <div class="tr-text"><div class="tr-name">Auto-layout</div><div class="tr-sub">Map flex/grid to Figma auto-layout</div></div>
+                <div class="toggle-switch" id="tog-autolayout" onclick="toggleSetting('autoLayout',this)"></div>
+              </div>
+              <div class="toggle-row">
+                <svg class="tr-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                <div class="tr-text"><div class="tr-name">Editable text</div><div class="tr-sub">Create live text layers (not rects)</div></div>
+                <div class="toggle-switch on" id="tog-text" onclick="toggleSetting('editableText',this)"></div>
+              </div>
+              <div class="toggle-row">
+                <svg class="tr-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l4 4-4 4-4-4z"/><path d="M12 13l4 4-4 4-4-4z"/><path d="M3 12l4-4 4 4-4 4z"/><path d="M13 12l4-4 4 4-4 4z"/></svg>
+                <div class="tr-text"><div class="tr-name">Detect components</div><div class="tr-sub">Group repeated patterns</div></div>
+                <div class="toggle-switch" id="tog-components" onclick="toggleSetting('detectComponents',this)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import button -->
+        <button class="btn btn-primary btn-full" id="btn-import" onclick="startImport()" style="margin-top:14px" disabled>
+          <span id="btn-import-text">Convert to Figma</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+
+        <!-- Recents -->
+        <div id="recents-section" style="margin-top:18px;display:none">
+          <div style="display:flex;align-items:center;margin-bottom:6px">
+            <div class="pc-eyebrow" style="margin-bottom:0">Recent</div>
+            <div style="flex:1"></div>
+            <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 6px" onclick="goScreen('history')">
+              See all
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="recent-list" id="recent-list-mini"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PARSING ══ -->
+    <div id="screen-parsing" class="screen hidden">
+      <div class="pc-inner">
+        <div class="parse-hero">
+          <div class="parse-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="32" class="pr-bg"/>
+              <circle cx="40" cy="40" r="32" class="pr-fg" id="parse-circle" style="stroke-dasharray:201;stroke-dashoffset:201"/>
+            </svg>
+            <div class="pr-text"><span id="parse-pct">0%</span><small>converting</small></div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:13px;font-weight:600;color:var(--p-ink)" id="parse-source-label">Converting…</div>
+            <div class="pc-sub" id="parse-stage-label" style="margin-top:2px;font-size:11px">Starting…</div>
+          </div>
+        </div>
+        <div class="parse-stages" id="parse-stages"></div>
+        <div style="margin-top:14px;display:flex;justify-content:center">
+          <button class="btn btn-ghost btn-sm" onclick="cancelImport()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DONE ══ -->
+    <div id="screen-done" class="screen hidden">
+      <div class="pc-inner" style="display:flex;flex-direction:column;height:100%">
+        <div class="done-hero">
+          <div class="done-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="done-title">Import complete</div>
+          <div class="done-sub" id="done-sub">Your design has been added to the canvas.</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="st-val" id="stat-frames">1</div><div class="st-label">Frames</div></div>
+          <div class="stat-tile"><div class="st-val" id="stat-layers">—</div><div class="st-label">Layers</div></div>
+          <div class="stat-tile"><div class="st-val" id="stat-text">—</div><div class="st-label">Text</div></div>
+          <div class="stat-tile"><div class="st-val" id="stat-images">—</div><div class="st-label">Images</div></div>
+        </div>
+        <div class="card sync-card" style="margin-bottom:14px">
+          <div class="sync-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:600">Frame added to canvas</div>
+            <div style="font-size:10px;color:var(--p-ink-dim)" id="done-detail">Scroll the canvas to find your imported design.</div>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" style="flex:1;height:34px;border-radius:8px;font-size:11px" onclick="goScreen('start')">Import another</button>
+          <button class="btn btn-primary" style="flex:1;height:34px;border-radius:8px;font-size:11px" onclick="cancelImport()">Close plugin</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ERROR ══ -->
+    <div id="screen-error" class="screen hidden">
+      <div class="pc-inner">
+        <div class="error-hero">
+          <div class="eh-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--p-ink)">Import failed</div>
+          <div class="pc-sub" id="error-detail" style="font-size:11px">An error occurred during import.</div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-size:9px;font-weight:600;color:var(--p-ink-dim);margin-bottom:6px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.06em">Error log</div>
+          <div id="error-log-text" style="font-family:var(--font-mono);font-size:10px;color:#f87171;line-height:1.6;word-break:break-all"></div>
+        </div>
+        <button class="btn btn-secondary btn-full" onclick="goScreen('start')">Try another source</button>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY ══ -->
+    <div id="screen-history" class="screen hidden">
+      <div class="pc-inner">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <button class="back-btn" onclick="goScreen('start')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <div>
+            <div class="pc-h1" style="font-size:14px">Recent imports</div>
+            <div class="pc-sub" style="font-size:10px">Your import history from this session.</div>
+          </div>
+        </div>
+        <div class="recent-list" id="history-list"></div>
+        <div id="history-empty" style="display:none;text-align:center;padding:32px 0;color:var(--p-ink-dimmer);font-size:11px">
+          No imports yet. Go back and import something!
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div id="screen-settings" class="screen hidden">
+      <div class="pc-inner">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <button class="back-btn" onclick="goScreen('start')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <div class="pc-h1" style="font-size:14px">Settings</div>
+        </div>
+
+        <div class="pc-eyebrow" style="margin-top:4px">Conversion</div>
+        <div class="settings-row">
+          <div class="sr-text"><div class="sr-name">Auto-layout</div><div class="sr-sub">Map flex/grid into Figma auto-layout frames.</div></div>
+          <div class="toggle-switch" id="tog-autolayout-s" onclick="toggleSettingSync('autoLayout',this,'tog-autolayout')"></div>
+        </div>
+        <div class="settings-row">
+          <div class="sr-text"><div class="sr-name">Editable text layers</div><div class="sr-sub">Create live text nodes, not rasterised rects.</div></div>
+          <div class="toggle-switch on" id="tog-text-s" onclick="toggleSettingSync('editableText',this,'tog-text')"></div>
+        </div>
+        <div class="settings-row">
+          <div class="sr-text"><div class="sr-name">Detect components</div><div class="sr-sub">Group repeated patterns as Figma components.</div></div>
+          <div class="toggle-switch" id="tog-components-s" onclick="toggleSettingSync('detectComponents',this,'tog-components')"></div>
+        </div>
+
+        <div class="pc-eyebrow" style="margin-top:18px">Render Mode</div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+          <div class="sr-sub" style="font-size:10px;line-height:1.6">
+            <b>Auto</b> — semantic first, DOM mirror fallback.<br>
+            <b>Semantic</b> — clean editable layers from structural content.<br>
+            <b>DOM Mirror</b> — pixel-accurate capture of the rendered page.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="mode-btn active" id="mode-auto"     onclick="setRenderMode('auto')">Auto</button>
+            <button class="mode-btn"        id="mode-semantic" onclick="setRenderMode('semantic')">Semantic</button>
+            <button class="mode-btn"        id="mode-dom"      onclick="setRenderMode('dom')">DOM Mirror</button>
+          </div>
+        </div>
+
+        <div class="pc-eyebrow" style="margin-top:18px">About</div>
+        <div class="settings-row">
+          <div class="sr-text"><div class="sr-name">HTML to Figma</div><div class="sr-sub">v1.0.0 · Open source Figma plugin</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /plugin-content -->
+
+  <!-- Footer -->
+  <div class="plugin-footer">
+    <span class="pf-dot" id="pf-dot" style="background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.18)"></span>
+    <span id="pf-status">Ready</span>
+    <div class="pf-spacer"></div>
+    <span style="color:var(--p-ink-dimmer);font-size:9px">v1.0.0</span>
+  </div>
+
+</div><!-- /plugin-shell -->
+
+<!-- Hidden render iframe -->
+<iframe id="render-frame" style="position:fixed;top:-9999px;left:-9999px;visibility:hidden;pointer-events:none;border:none" sandbox="allow-same-origin allow-scripts"></iframe>
+
+<script>
+// ─── Constants ─────────────────────────────────────────────────────────────
+const PROXY_URL      = 'https://html-to-figma-proxy-flame.vercel.app/api/fetch';
+const EXTRACT_URL    = 'https://html-to-figma-proxy-flame.vercel.app/api/extract';
+const SCREENSHOT_URL = 'https://html-to-figma-proxy-flame.vercel.app/api/screenshot';
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let currentSource       = 'file'; // 'file' or 'url'
+let selectedFile        = null;
+let viewportWidth   = 1440;
+let currentScreen   = 'start';
+let lastSourceName  = '';
+
+const settings = {
+  autoLayout:       false,
+  detectComponents: false,
+  editableText:     true,
+  designTokens:     false,
+  renderMode:       'dom',  // 'dom' | 'semantic' | 'auto' — dom gives absolute-position layout fidelity
+};
+
+const recentImports = [];
+
+// ─── Screen routing ─────────────────────────────────────────────────────────
+function goScreen(name) {
+  document.getElementById('screen-' + currentScreen).classList.add('hidden');
+  document.getElementById('screen-' + name).classList.remove('hidden');
+  currentScreen = name;
+
+  document.getElementById('btn-history').classList.toggle('active', name === 'history');
+  document.getElementById('btn-settings').classList.toggle('active', name === 'settings');
+
+  const statuses = {
+    start:    { text: 'Ready',                color: 'var(--green)',   glow: 'rgba(16,185,129,.18)' },
+    parsing:  { text: 'Converting…',          color: 'var(--cyan)',    glow: 'rgba(71,202,216,.2)'  },
+    done:     { text: 'Imported · ready',     color: 'var(--green)',   glow: 'rgba(16,185,129,.18)' },
+    error:    { text: 'Import failed',        color: '#f87171',        glow: 'rgba(248,113,113,.18)'},
+    history:  { text: recentImports.length + ' recent imports', color: 'var(--green)', glow: 'rgba(16,185,129,.18)' },
+    settings: { text: 'Settings',             color: 'var(--green)',   glow: 'rgba(16,185,129,.18)' },
+  };
+  const s = statuses[name] || statuses.start;
+  document.getElementById('pf-status').textContent = s.text;
+  const dot = document.getElementById('pf-dot');
+  dot.style.background  = s.color;
+  dot.style.boxShadow   = '0 0 0 3px ' + s.glow;
+
+  if (name === 'start')   renderRecentsMini();
+  if (name === 'history') renderHistory();
+}
+
+// ─── URL input ──────────────────────────────────────────────────────────────
+function onUrlInput() {
+  const val = document.getElementById('url-input').value.trim();
+  document.getElementById('btn-fetch').disabled = val.length < 4;
+}
+function setUrl(url) {
+  if (url && !url.match(/^https?:\/\//i)) url = 'https://' + url;
+  document.getElementById('url-input').value = url;
+  document.getElementById('btn-fetch').disabled = false;
+}
+function handleUrlFetch() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  lastSourceName = url;
+  currentSource  = 'url';
+  doImportFromUrl(url);
+}
+async function doImportFromUrl(url) {
+  clearError();
+  goScreen('parsing');
+  initParsingUI(url);
+  try {
+    updateParseStage(0);
+    updateParsePct(10);
+
+    // 1. Fetch raw HTML via proxy to bypass CORS
+    var html = await fetchViaProxy(url);
+
+    // 2. Inject <base> so relative paths (images, fonts) resolve against the live site
+    if (!html.includes('<base ')) {
+      if (html.includes('<head>')) {
+        html = html.replace('<head>', '<head><base href="' + url + '">');
+      } else {
+        html = '<head><base href="' + url + '"></head>' + html;
+      }
+    }
+
+    // 3. Feed into our local engine — same path as file imports, all layout fixes apply
+    await processHtml(html, url);
+
+  } catch (err) {
+    showErrorScreen((err && err.message) || 'Import failed. Check the URL and try again.');
+  }
+}
+
+async function callScreenshotProxy(payload) {
+  var res;
+  try {
+    res = await fetch(SCREENSHOT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    throw new Error('Screenshot proxy unreachable: ' + (err.message || 'network error'));
+  }
+  if (!res.ok) {
+    var errMsg = 'Screenshot proxy HTTP ' + res.status;
+    try { var d = await res.json(); if (d.error) errMsg = d.error; } catch(_) {}
+    throw new Error(errMsg);
+  }
+  var data;
+  try { data = await res.json(); } catch(_) { throw new Error('Screenshot proxy returned invalid JSON.'); }
+  if (data.error) throw new Error(data.error);
+  if (!data.imageData) throw new Error('No image returned from screenshot proxy.');
+  return data;
+}
+
+// Figma createImage limit is ~4096×4096 px. Scale screenshot down if needed.
+var FIGMA_MAX_PX = 4000;
+
+function getImageDimensions(dataUrl) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    img.onload = function() { resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
+    img.onerror = function() { reject(new Error('Could not read image dimensions.')); };
+    img.src = dataUrl;
+  });
+}
+
+function fitImageForFigma(dataUrl) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    img.onerror = function() { reject(new Error('Could not load screenshot image.')); };
+    img.onload = function() {
+      var w = img.naturalWidth;
+      var h = img.naturalHeight;
+
+      // Already within limits — return as-is
+      if (w <= FIGMA_MAX_PX && h <= FIGMA_MAX_PX) {
+        resolve({ imageData: dataUrl, width: w, height: h });
+        return;
+      }
+
+      // Scale proportionally so the longest dimension equals FIGMA_MAX_PX
+      var scale = Math.min(FIGMA_MAX_PX / w, FIGMA_MAX_PX / h);
+      var newW  = Math.round(w * scale);
+      var newH  = Math.round(h * scale);
+
+      var canvas = document.createElement('canvas');
+      canvas.width  = newW;
+      canvas.height = newH;
+      canvas.getContext('2d').drawImage(img, 0, 0, newW, newH);
+      resolve({ imageData: canvas.toDataURL('image/jpeg', 0.85), width: newW, height: newH });
+    };
+    img.src = dataUrl;
+  });
+}
+
+// ─── Options accordion ──────────────────────────────────────────────────────
+function toggleOptions() {
+  const panel   = document.getElementById('opt-panel');
+  const chevron = document.getElementById('opt-chevron');
+  const open    = panel.style.display === 'none';
+  panel.style.display    = open ? 'block' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+// ─── Import tip accordion ────────────────────────────────────────────────────
+function toggleImportTip() {
+  const body    = document.getElementById('import-tip-body');
+  const chevron = document.getElementById('import-tip-chevron');
+  const btn     = document.getElementById('import-tip-btn');
+  const open    = body.style.display === 'none';
+  body.style.display       = open ? 'block' : 'none';
+  chevron.style.transform  = open ? 'rotate(180deg)' : '';
+  btn.style.borderRadius   = open ? '7px 7px 0 0' : '7px';
+  btn.style.borderBottom   = open ? '1px dashed transparent' : '';
+}
+
+// ─── Drag & drop ─────────────────────────────────────────────────────────────
+function onDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag-over'); }
+function onDragLeave()  { document.getElementById('dropzone').classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+function onFileSelect(e) {
+  const file = e.target.files && e.target.files[0];
+  if (file) handleFile(file);
+}
+function handleFile(file) {
+  if (!file.name.match(/\.(h2d|html|htm)$/i)) {
+    showError('Please select a .h2d or .html file.');
+    return;
+  }
+  selectedFile = file;
+  currentSource = 'file';
+  showFileSelected(file.name);
+  clearError();
+  document.getElementById('btn-import').disabled = false;
+}
+function showFileSelected(name) {
+  document.getElementById('dropzone').style.display      = 'none';
+  document.getElementById('file-selected').style.display = 'block';
+  document.getElementById('file-selected-name').textContent = name;
+}
+function clearFile() {
+  selectedFile        = null;
+  document.getElementById('file-selected').style.display = 'none';
+  document.getElementById('dropzone').style.display      = 'flex';
+  document.getElementById('file-input').value            = '';
+  document.getElementById('btn-import').disabled         = true;
+}
+
+
+// ─── Viewport ────────────────────────────────────────────────────────────────
+function pickViewport(el) {
+  document.querySelectorAll('#viewport-seg button').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  viewportWidth = parseInt(el.getAttribute('data-vp')) || 1440;
+}
+
+// ─── Settings toggles ────────────────────────────────────────────────────────
+function toggleSetting(key, el) {
+  settings[key] = !settings[key];
+  el.classList.toggle('on', settings[key]);
+}
+function toggleSettingSync(key, el, mirrorId) {
+  toggleSetting(key, el);
+  const mirror = document.getElementById(mirrorId);
+  if (mirror) mirror.classList.toggle('on', settings[key]);
+}
+function setRenderMode(mode) {
+  settings.renderMode = mode;
+  ['auto','semantic','dom'].forEach(function(m) {
+    var btn = document.getElementById('mode-' + m);
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+}
+
+// ─── Error ───────────────────────────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  if (!el) return;
+  el.textContent  = msg;
+  el.style.display = 'block';
+}
+function clearError() {
+  const el = document.getElementById('error-banner');
+  if (el) el.style.display = 'none';
+}
+
+// ─── Import entry point ───────────────────────────────────────────────────────
+function extractBaseUrl(html) {
+  // Check for <base href="..."> tag inserted by browsers when saving pages
+  const m = html.match(/<base[^>]+href=["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
+async function startImport() {
+  clearError();
+  let html = '';
+  let baseUrl = null;
+  try {
+    if (!selectedFile) { showError('Please select a .h2d or .html file.'); return; }
+    lastSourceName = selectedFile.name;
+    html = await readFileAsText(selectedFile);
+    baseUrl = extractBaseUrl(html);
+    if (!html) { showError('Could not read file.'); return; }
+
+    goScreen('parsing');
+    initParsingUI(lastSourceName);
+    // Local DOM extraction — loads the HTML in an iframe, walks the DOM with computed
+    // styles and absolute positions, sends a DesignNode tree to code.ts for Figma layers.
+    await processHtml(html, baseUrl);
+
+  } catch (err) {
+    if (currentScreen === 'parsing') showErrorScreen(err.message || 'Something went wrong.');
+    else { goScreen('start'); showError(err.message || 'Something went wrong.'); }
+  }
+}
+
+async function processHtml(html, baseUrl) {
+  updateParseStage(1);
+  updateParsePct(15);
+
+  // Detect __bundler/template standalone files (e.g. IQ.wiki) and extract
+  // the pre-rendered template HTML directly, bypassing JS decompression.
+  var bundlerMatch = html.match(/<script[^>]+type=["']__bundler\/template["'][^>]*>([\s\S]*?)<\/script>/);
+  if (bundlerMatch) {
+    try { html = JSON.parse(bundlerMatch[1].trim()); } catch(_) {}
+  }
+
+  // Inline external stylesheets so the iframe renders with full CSS
+  html = await inlineExternalCss(html, baseUrl || null);
+  updateParsePct(40);
+
+  updateParseStage(2);
+  updateParsePct(55);
+
+  var tree;
+  var mode = settings.renderMode || 'auto';
+  if (mode === 'semantic') {
+    tree = await renderAndExtractSemantic(html);
+  } else if (mode === 'dom') {
+    tree = await renderAndExtract(html);
+  } else {
+    // Auto: try semantic first; fall back to DOM mirror if result is too shallow
+    try {
+      tree = await renderAndExtractSemantic(html);
+      // Only fall back to DOM mirror if semantic produced truly no content
+      if (!tree || !tree.children || countSemanticNodes(tree) < 4) {
+        tree = await renderAndExtract(html);
+      }
+    } catch(_) {
+      tree = await renderAndExtract(html);
+    }
+  }
+
+  if (!tree) throw new Error('Could not extract design from HTML.');
+
+  updateParseStage(3);
+  updateParsePct(80);
+  parent.postMessage({ pluginMessage: { type: 'import', tree: tree, settings: settings } }, '*');
+}
+
+// ─── Cancel ──────────────────────────────────────────────────────────────────
+function cancelImport() {
+  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+}
+
+// ─── Parsing UI ──────────────────────────────────────────────────────────────
+const STAGES = [
+  'Fetching HTML & assets',
+  'Parsing DOM tree',
+  'Extracting computed styles',
+  'Building Figma nodes',
+  'Importing to canvas',
+];
+
+function initParsingUI(sourceName) {
+  const short = sourceName.length > 28 ? sourceName.slice(0, 25) + '…' : sourceName;
+  document.getElementById('parse-source-label').textContent = 'Converting ' + short;
+  updateParsePct(5);
+
+  const iconIdle = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  document.getElementById('parse-stages').innerHTML = STAGES.map(function(s, i) {
+    return '<div class="parse-stage idle" id="pstage-' + i + '">' +
+      '<div class="ps-icon" id="pstage-icon-' + i + '">' + iconIdle + '</div>' +
+      '<div class="ps-name">' + s + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function updateParseStage(active) {
+  const iconDone  = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const iconSpin  = '<svg class="spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+  const iconIdle  = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+  for (let i = 0; i < STAGES.length; i++) {
+    const el   = document.getElementById('pstage-' + i);
+    const icon = document.getElementById('pstage-icon-' + i);
+    if (!el) continue;
+    if (i < active)      { el.className = 'parse-stage done';   icon.innerHTML = iconDone; }
+    else if (i === active){ el.className = 'parse-stage active'; icon.innerHTML = iconSpin; }
+    else                  { el.className = 'parse-stage idle';   icon.innerHTML = iconIdle; }
+  }
+  const lbl = document.getElementById('parse-stage-label');
+  if (lbl && STAGES[active]) lbl.textContent = STAGES[active] + '…';
+}
+
+function updateParsePct(pct) {
+  const circ   = 2 * Math.PI * 32;
+  const offset = circ - (circ * pct / 100);
+  const circle = document.getElementById('parse-circle');
+  if (circle) { circle.style.strokeDasharray = circ; circle.style.strokeDashoffset = offset; }
+  const pctEl = document.getElementById('parse-pct');
+  if (pctEl) pctEl.textContent = pct + '%';
+}
+
+// ─── Error screen ─────────────────────────────────────────────────────────────
+function showErrorScreen(msg) {
+  document.getElementById('error-detail').textContent   = msg;
+  document.getElementById('error-log-text').textContent = msg;
+  goScreen('error');
+}
+
+// ─── Messages from Figma ──────────────────────────────────────────────────────
+window.onmessage = function(event) {
+  const msg = event.data && event.data.pluginMessage;
+  if (!msg) return;
+
+  if (msg.type === 'progress') {
+    const pct = msg.percent || 0;
+    updateParsePct(pct);
+    if (msg.message) {
+      const lbl = document.getElementById('parse-stage-label');
+      if (lbl) lbl.textContent = msg.message;
+    }
+    if (pct >= 80) updateParseStage(4);
+    else if (pct >= 30) updateParseStage(3);
+
+  } else if (msg.type === 'complete') {
+    updateParsePct(100);
+    addRecent(lastSourceName, currentSource);
+    setTimeout(function() { goScreen('done'); }, 600);
+
+  } else if (msg.type === 'error') {
+    showErrorScreen(msg.message || 'Import failed.');
+  }
+};
+
+// ─── File readers ─────────────────────────────────────────────────────────────
+function readFileAsText(file) {
+  return new Promise(function(resolve, reject) {
+    const r = new FileReader();
+    r.onload  = function(e) { resolve(e.target.result); };
+    r.onerror = function()  { reject(new Error('Failed to read file.')); };
+    r.readAsText(file);
+  });
+}
+
+// ─── CORS proxy ───────────────────────────────────────────────────────────────
+function isLocalUrl(url) {
+  try {
+    const h = new URL(url).hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' || h === '[::1]' ||
+           /^192\.168\./.test(h) || /^10\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h);
+  } catch { return false; }
+}
+
+// Try a plain fetch — works for local URLs and many external ones inside Figma's Electron runtime
+async function fetchDirect(url) {
+  const res = await fetch(url, {
+    headers: {
+      'Accept': 'text/html,application/xhtml+xml,*/*',
+      'Cache-Control': 'no-cache',
+    },
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+  return res.text();
+}
+
+async function fetchViaProxy(url) {
+  // Validate URL
+  let parsed;
+  try { parsed = new URL(url); } catch(_) {
+    throw new Error('Invalid URL — make sure it starts with https:// (e.g. https://example.com)');
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error('Only http:// and https:// URLs are supported.');
+  }
+
+  // Local URLs — always fetch directly, proxy can\'t reach these
+  if (isLocalUrl(url)) {
+    try { return await fetchDirect(url); } catch (err) {
+      throw new Error('Could not connect to ' + parsed.host + ' — is the server running?\n' + err.message);
+    }
+  }
+
+  // External URLs — try direct first (works in Figma desktop without CORS restrictions)
+  try {
+    const html = await fetchDirect(url);
+    if (html && html.trim()) return html;
+  } catch (_) {
+    // Direct fetch failed (CORS or network) — fall through to proxy
+  }
+
+  // Fallback: CORS proxy
+  let res;
+  try {
+    res = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url }),
+    });
+  } catch (err) {
+    const msg = (err && err.message) ? err.message.toLowerCase() : '';
+    if (!navigator.onLine) throw new Error('No internet connection — check your network and try again.');
+    if (msg.includes('failed to fetch') || msg.includes('networkerror')) {
+      throw new Error(
+        'Direct fetch was blocked by CORS and the proxy server is not reachable.\n\n' +
+        'To fix external URLs, deploy the proxy once:\n' +
+        '  cd proxy && vercel login && vercel --prod\n' +
+        'Then paste the URL Vercel gives you here and update PROXY_URL in ui.html.\n\n' +
+        'Tip: For downloaded pages, use the File tab instead.'
+      );
+    }
+    throw new Error('Network error: ' + err.message);
+  }
+
+  if (!res.ok) {
+    if (res.status === 403) throw new Error('Access denied (403) — the site is blocking automated access.');
+    if (res.status === 404) throw new Error('Page not found (404) — check the URL is correct.');
+    if (res.status === 429) throw new Error('Rate limited (429) — wait a moment and try again.');
+    if (res.status === 500) throw new Error('Proxy error (500) — try the File tab: save the page as HTML and import it.');
+    if (res.status === 502 || res.status === 503) throw new Error('Proxy unavailable (' + res.status + ') — try again in a moment.');
+    throw new Error('Proxy returned HTTP ' + res.status);
+  }
+
+  let data;
+  try { data = await res.json(); } catch(_) { throw new Error('Proxy returned an unreadable response.'); }
+  if (data.error) throw new Error('Fetch failed: ' + data.error);
+  if (!data.html) throw new Error('No HTML found — the page may require login or JavaScript to render.');
+  return data.html;
+}
+
+// Inline external <link rel="stylesheet"> and <style> @import rules so they load inside
+// the sandboxed iframe. Also resolves @import inside already-inlined CSS, and handles
+// Google Fonts / CDN blocks by falling back to the CORS proxy.
+async function inlineExternalCss(html, baseUrl) {
+  // Step 1: collect <link rel="stylesheet"> tags
+  const linkRe = /<link[^>]+rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*\/?>/gi;
+  const linkMatches = [];
+  let m;
+  while ((m = linkRe.exec(html)) !== null) linkMatches.push({ tag: m[0], href: m[1] });
+
+  // Step 2: fetch each stylesheet (direct first, then proxy fallback)
+  async function fetchCss(href) {
+    // Direct fetch
+    try {
+      const r = await fetch(href, { signal: AbortSignal.timeout(6000) });
+      if (r.ok) return await r.text();
+    } catch (_) {}
+    // Proxy fallback (for CORS-blocked CDN sheets)
+    try {
+      const r = await fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: href }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        // Proxy returns { html } but we can also accept raw CSS if content-type differs
+        if (d.html) return d.html;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // Rewrite relative url() inside CSS to absolute so they load in the iframe
+  function absolutizeCssUrls(css, sheetBase) {
+    if (!sheetBase) return css;
+    return css.replace(/url\(\s*['"]?(?!data:|https?:|\/\/)(\.?\.?\/[^'")\s]+|[^'")\s;]+)['"]?\s*\)/gi, function(match, path) {
+      try { return 'url("' + new URL(path.trim(), sheetBase) + '")'; }
+      catch (_) { return match; }
+    });
+  }
+
+  // Step 3: recursively resolve @import rules inside fetched CSS
+  async function resolveCss(css, sheetBase) {
+    if (!css) return '';
+    const importRe = /@import\s+(?:url\()?["']?([^"');]+)["']?\)?[^;]*;/gi;
+    const imports = [];
+    let im;
+    while ((im = importRe.exec(css)) !== null) imports.push({ match: im[0], href: im[1].trim() });
+    for (const item of imports) {
+      try {
+        const absHref = sheetBase ? new URL(item.href, sheetBase).toString() : item.href;
+        if (!absHref.match(/^https?:\/\//)) continue;
+        const imported = await fetchCss(absHref);
+        if (imported) {
+          const resolved = await resolveCss(imported, absHref);
+          const absolutized = absolutizeCssUrls(resolved, absHref);
+          css = css.replace(item.match, absolutized);
+        }
+      } catch (_) {}
+    }
+    return css;
+  }
+
+  // Step 4: replace <link> tags with <style> blocks containing inlined CSS
+  await Promise.all(linkMatches.map(async function(item) {
+    try {
+      let href = item.href;
+      if (baseUrl && !href.match(/^https?:\/\//)) href = new URL(href, baseUrl).toString();
+      if (!href.match(/^https?:\/\//)) return;
+      const raw = await fetchCss(href);
+      if (raw) {
+        const resolved = await resolveCss(raw, href);
+        const absolutized = absolutizeCssUrls(resolved, href);
+        html = html.replace(item.tag, '<style>\n' + absolutized + '\n</style>');
+      }
+    } catch (_) {}
+  }));
+
+  // Step 5: also resolve @import inside any existing <style> blocks
+  const styleRe = /(<style[^>]*>)([\s\S]*?)(<\/style>)/gi;
+  const styleMatches = [];
+  while ((m = styleRe.exec(html)) !== null) {
+    styleMatches.push({ full: m[0], open: m[1], css: m[2], close: m[3] });
+  }
+  for (const item of styleMatches) {
+    if (item.css.includes('@import')) {
+      const resolved = await resolveCss(item.css, baseUrl || '');
+      if (resolved !== item.css) {
+        html = html.replace(item.full, item.open + resolved + item.close);
+      }
+    }
+  }
+
+  // Step 6: inline web fonts as base64 data: URIs so they render in the sandboxed iframe
+  // The plugin UI has full network access (manifest.json allowedDomains:*), so we can fetch
+  // fonts directly. Google Fonts (fonts.gstatic.com) allows CORS.
+  async function inlineFontUrl(url) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return null;
+      const buf = await r.arrayBuffer();
+      if (buf.byteLength > 900 * 1024) return null; // skip > 900 KB
+      const ext = url.split('?')[0].split('.').pop().toLowerCase();
+      const mimes = { woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf' };
+      const mime = mimes[ext] || 'font/woff2';
+      const uint8 = new Uint8Array(buf);
+      let binary = '';
+      const chunk = 8192;
+      for (let i = 0; i < uint8.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, uint8.subarray(i, i + chunk));
+      }
+      return 'data:' + mime + ';base64,' + btoa(binary);
+    } catch (_) { return null; }
+  }
+
+  const fontUrls = new Set();
+  const allStyleRe = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+  let asm;
+  while ((asm = allStyleRe.exec(html)) !== null) {
+    const ffRe = /@font-face\s*\{([^}]+)\}/gi;
+    let ffm;
+    while ((ffm = ffRe.exec(asm[1])) !== null) {
+      const urlRe = /url\(['"]?(https?:\/\/[^'")\s]+)['"]?\)/gi;
+      let um;
+      while ((um = urlRe.exec(ffm[1])) !== null) fontUrls.add(um[1]);
+    }
+  }
+  if (fontUrls.size > 0) {
+    const fontPairs = await Promise.all([...fontUrls].slice(0, 50).map(async function(url) {
+      const data = await inlineFontUrl(url);
+      return data ? { url, data } : null;
+    }));
+    for (const pair of fontPairs) {
+      if (pair) html = html.split(pair.url).join(pair.data);
+    }
+  }
+
+  return html;
+}
+
+
+// ─── DOM extraction ───────────────────────────────────────────────────────────
+function renderAndExtract(html) {
+  return new Promise(function(resolve, reject) {
+    var iframe = document.getElementById('render-frame');
+    iframe.style.width  = viewportWidth + 'px';
+    iframe.style.height = '8000px';
+    var timer = setTimeout(function() { reject(new Error('Render timeout')); }, 25000);
+    iframe.onload = async function() {
+      clearTimeout(timer);
+      try {
+        var doc = iframe.contentDocument;
+        var win = iframe.contentWindow;
+        if (!doc || !win) { reject(new Error('Cannot access iframe')); return; }
+        // Inject pseudo-element flattener
+        try { injectPseudoFlattener(doc); } catch(_) {}
+        // Give React/Framer/Next.js time to boot their JS modules before we start polling
+        await new Promise(function(r) { setTimeout(r, 3500); });
+        // Wait for images and fonts to load (max 4s)
+        await waitForResources(doc);
+        // Wait for JS and layout to fully settle — poll DOM until stable
+        await waitForDomStability(doc, win);
+        var bodyRect = doc.body.getBoundingClientRect();
+        var docW = Math.max(doc.documentElement.scrollWidth, viewportWidth);
+        var docH = Math.max(doc.documentElement.scrollHeight, bodyRect.height, 900);
+        // Check both <html> and <body> for background — many sites set it on <html>
+        var htmlBg = parseColor(win.getComputedStyle(doc.documentElement).backgroundColor);
+        var bodyBg = parseColor(win.getComputedStyle(doc.body).backgroundColor);
+        var rootBg = (bodyBg && bodyBg.a > 0.01) ? bodyBg
+                   : (htmlBg && htmlBg.a > 0.01) ? htmlBg
+                   : { r: 1, g: 1, b: 1, a: 1 };
+        var root = {
+          type: 'frame', name: doc.title || 'Page',
+          x: 0, y: 0, width: docW, height: docH,
+          backgroundColor: rootBg,
+          clipsContent: false, children: []
+        };
+        for (var i = 0; i < doc.body.children.length; i++) {
+          var cn = await walkDOM(doc.body.children[i], win, 0);
+          if (cn) root.children.push(cn);
+        }
+        resolve(root);
+      } catch(e) { reject(e); }
+    };
+    iframe.srcdoc = html;
+  });
+}
+
+// ─── Semantic extraction pipeline ─────────────────────────────────────────────
+function renderAndExtractSemantic(html) {
+  return new Promise(function(resolve, reject) {
+    var iframe = document.getElementById('render-frame');
+    iframe.style.width  = viewportWidth + 'px';
+    iframe.style.height = '8000px';
+    var timer = setTimeout(function() { reject(new Error('Semantic render timeout')); }, 25000);
+    iframe.onload = async function() {
+      clearTimeout(timer);
+      try {
+        var doc = iframe.contentDocument;
+        var win = iframe.contentWindow;
+        if (!doc || !win) { reject(new Error('Cannot access iframe')); return; }
+        try { injectPseudoFlattener(doc); } catch(_) {}
+        // Give React/Framer/Next.js time to boot their JS modules before we start polling
+        await new Promise(function(r) { setTimeout(r, 3500); });
+        await waitForResources(doc);
+        await waitForDomStability(doc, win);
+        var tree = await extractSemanticTree(doc, win);
+        resolve(tree);
+      } catch(e) { reject(e); }
+    };
+    iframe.srcdoc = html;
+  });
+}
+
+function countSemanticNodes(tree) {
+  if (!tree) return 0;
+  var count = 1;
+  if (tree.children) tree.children.forEach(function(c) { count += countSemanticNodes(c); });
+  return count;
+}
+
+async function extractSemanticTree(doc, win) {
+  var tokens = extractDesignTokens(doc, win);
+  var docW = Math.max(doc.documentElement.scrollWidth, viewportWidth);
+  var docH = Math.max(doc.documentElement.scrollHeight, 900);
+  var htmlBg = parseColor(win.getComputedStyle(doc.documentElement).backgroundColor);
+  var bodyBg = parseColor(win.getComputedStyle(doc.body).backgroundColor);
+  var rootBg = (bodyBg && bodyBg.a > 0.02) ? bodyBg
+             : (htmlBg && htmlBg.a > 0.02) ? htmlBg
+             : { r: 1, g: 1, b: 1, a: 1 };
+  var root = {
+    mode: 'semantic', type: 'document', name: doc.title || 'Page',
+    width: docW, height: docH, background: rootBg, tokens: tokens, children: []
+  };
+  for (var i = 0; i < doc.body.children.length; i++) {
+    var node = await extractSemanticElement(doc.body.children[i], win, tokens, 0);
+    if (node) root.children.push(node);
+  }
+  // Unwrap SPA-style single root wrapper (e.g. <div id="root">)
+  // if it has no background and just wraps everything
+  while (root.children.length === 1) {
+    var only = root.children[0];
+    if (only.children && only.children.length > 0 && !only.background) {
+      root.children = only.children;
+    } else {
+      break;
+    }
+  }
+  return root;
+}
+
+function extractDesignTokens(doc, win) {
+  var tokens = {};
+  var styleEls = doc.querySelectorAll('style');
+  styleEls.forEach(function(s) {
+    var m, regex = /--([\w-]+)\s*:\s*([^;}\n]+)/g;
+    while ((m = regex.exec(s.textContent)) !== null) {
+      tokens['--' + m[1].trim()] = m[2].trim();
+    }
+  });
+  var rootStyle = win.getComputedStyle(doc.documentElement);
+  ['--background','--foreground','--primary','--accent','--card','--muted',
+   '--border','--destructive','--iq-bg','--iq-pink','--iq-green','--iq-white',
+   '--iq-text','--iq-border','--color-bg','--color-text','--color-primary'].forEach(function(v) {
+    var val = rootStyle.getPropertyValue(v).trim();
+    if (val) tokens[v] = val;
+  });
+  return tokens;
+}
+
+async function extractSemanticElement(el, win, tokens, depth) {
+  if (!el || !el.tagName) return null;
+  if (depth > 25) return null;
+  var tag = el.tagName.toLowerCase();
+  if (SKIP_TAGS.has(tag)) return null;
+  var rect   = el.getBoundingClientRect();
+  var styles = win.getComputedStyle(el);
+  if (styles.display === 'none' || styles.visibility === 'hidden') return null;
+  if (parseFloat(styles.opacity) < 0.01) return null;
+  if (rect.width < 1 && el.children.length === 0) return null;
+  var name = buildName(el, tag);
+
+  if (tag === 'svg') return await svgToNode(el, rect, name);
+
+  if (tag === 'picture') {
+    var pImg = el.querySelector('img');
+    if (!pImg) return null;
+    var pRect = pImg.getBoundingClientRect();
+    return { mode:'semantic', type:'image', tag:'picture', name:name,
+             width: Math.max(Math.round(rect.width), Math.round(pRect.width), 1),
+             height: Math.max(Math.round(rect.height), Math.round(pRect.height), 1),
+             imageData: await imgToDataUrl(pImg), children:[] };
+  }
+
+  if (tag === 'img') {
+    return { mode:'semantic', type:'image', tag:tag, name:name,
+             width: Math.max(Math.round(rect.width),1),
+             height: Math.max(Math.round(rect.height),1),
+             imageData: await imgToDataUrl(el), children:[] };
+  }
+
+  // Heading
+  if (/^h[1-6]$/.test(tag)) {
+    var text = (el.innerText || el.textContent || '').trim();
+    if (!text) return null;
+    return semTextNode(el, rect, styles, name, text, 'heading', parseInt(tag[1]));
+  }
+
+  // Text leaf — element with no element children (or only inline children)
+  var isLeaf = (el.children.length === 0) ||
+    (tag !== 'button' && Array.from(el.children).every(function(c) {
+      return INLINE_TAGS.has(c.tagName.toLowerCase());
+    }));
+  if (isLeaf) {
+    var leafText = (el.innerText || el.textContent || '').trim();
+    if (leafText) {
+      var semType = tag === 'li' ? 'list-item' : tag === 'button' ? 'button-text' : 'text';
+      return semTextNode(el, rect, styles, name, leafText, semType, 0);
+    }
+    return null;
+  }
+
+  // Container (including buttons with icons/mixed children)
+  var contType = semContainerType(tag, el, styles);
+  var layoutMode = semLayoutMode(styles);
+  var bg = parseColor(styles.backgroundColor);
+  var borderRadius = parseFloat(styles.borderRadius) || 0;
+  var pt = parseFloat(styles.paddingTop)    || 0;
+  var pr = parseFloat(styles.paddingRight)  || 0;
+  var pb = parseFloat(styles.paddingBottom) || 0;
+  var pl = parseFloat(styles.paddingLeft)   || 0;
+  var gap = parseFloat(styles.gap) || parseFloat(styles.rowGap) || parseFloat(styles.columnGap) || 0;
+  // Capture border for buttons and cards
+  var bwTop = parseFloat(styles.borderTopWidth)    || 0;
+  var bwR   = parseFloat(styles.borderRightWidth)  || 0;
+  var bwB   = parseFloat(styles.borderBottomWidth) || 0;
+  var bwL   = parseFloat(styles.borderLeftWidth)   || 0;
+  var maxBw = Math.max(bwTop, bwR, bwB, bwL);
+  var strokeColor = maxBw > 0 ? (parseColor(styles.borderColor) || parseColor(styles.borderTopColor)) : null;
+  var node = {
+    mode: 'semantic', type: contType, tag: tag, name: name,
+    width:  Math.round(rect.width)  || 0,
+    height: Math.round(rect.height) || 0,
+    background: (bg && bg.a > 0.02) ? bg : null,
+    borderRadius: Math.round(borderRadius),
+    strokeColor: strokeColor || undefined,
+    strokeWeight: maxBw > 0 ? maxBw : undefined,
+    layoutMode: layoutMode,
+    paddingTop: Math.round(pt), paddingRight: Math.round(pr),
+    paddingBottom: Math.round(pb), paddingLeft: Math.round(pl),
+    gap: Math.round(gap),
+    children: []
+  };
+  // CSS background-image (not gradient) — stored as bgImageData fill on the frame
+  var bgImgCss = styles.backgroundImage || '';
+  if (bgImgCss && bgImgCss !== 'none' && bgImgCss.indexOf('gradient') === -1) {
+    var bgUrlM = bgImgCss.match(/url\(['"]?([^'")\s]+)['"]?\)/);
+    if (bgUrlM && bgUrlM[1] && !bgUrlM[1].startsWith('data:')) {
+      var bgImgData = await fetchBgImageDataUrl(bgUrlM[1]);
+      if (bgImgData) node.bgImageData = bgImgData;
+    }
+  }
+
+  for (var i = 0; i < el.children.length; i++) {
+    var child = await extractSemanticElement(el.children[i], win, tokens, depth + 1);
+    if (child) node.children.push(child);
+  }
+  if (node.children.length === 0 && !node.background && rect.height < 2) return null;
+  return node;
+}
+
+function semTextNode(el, rect, styles, name, text, type, level) {
+  var color  = parseColor(styles.color) || { r:0, g:0, b:0, a:1 };
+  var fs     = parseFloat(styles.fontSize) || 16;
+  var family = (styles.fontFamily || 'Inter').split(',')[0].replace(/['"]/g,'').trim();
+  var wStyle = fontWeightToStyle(styles.fontWeight);
+  if (styles.fontStyle === 'italic') wStyle = (wStyle === 'Regular') ? 'Italic' : wStyle + ' Italic';
+  var lh = parseFloat(styles.lineHeight);
+  if (isNaN(lh) || lh <= 0) lh = Math.round(fs * 1.4);
+  return {
+    mode:'semantic', type:type, tag:el.tagName.toLowerCase(), name:name,
+    text:text, level:level, color:color,
+    fontFamily:family, fontStyle:wStyle,
+    fontSize:Math.round(fs), lineHeight:Math.round(lh),
+    textAlign: styles.textAlign || 'left',
+    width: Math.round(rect.width), height: Math.round(rect.height),
+    children:[]
+  };
+}
+
+function semContainerType(tag, el, styles) {
+  var cls = ((el.className && typeof el.className === 'string') ? el.className : '').toLowerCase();
+  if (tag === 'nav') return 'nav';
+  if (tag === 'header') return 'header';
+  if (tag === 'main') return 'main';
+  if (tag === 'footer') return 'footer';
+  if (tag === 'section' || tag === 'article') return 'section';
+  if (tag === 'button') return 'button';
+  if (/\bhero\b/.test(cls)) return 'hero';
+  if (/\bcard\b/.test(cls)) return 'card';
+  if (styles.display === 'grid') return 'grid';
+  return 'container';
+}
+
+function semLayoutMode(styles) {
+  var d = styles.display;
+  if (d === 'flex' || d === 'inline-flex') {
+    var dir = styles.flexDirection || 'row';
+    return (dir === 'column' || dir === 'column-reverse') ? 'VERTICAL' : 'HORIZONTAL';
+  }
+  if (d === 'grid') return 'HORIZONTAL';
+  return 'VERTICAL';
+}
+
+// ─── End semantic extraction ────────────────────────────────────────────────
+
+function injectPseudoFlattener(doc) {
+  // Make ::before / ::after content participate in layout so getBoundingClientRect sees them
+  var style = doc.createElement('style');
+  style.textContent = [
+    '*, *::before, *::after { box-sizing: border-box !important; }',
+    // Ensure images don't exceed viewport width (helps with layout calculation)
+    'img { max-width: 100%; height: auto; }',
+  ].join('\n');
+  if (doc.head) doc.head.appendChild(style);
+}
+
+function waitForResources(doc) {
+  return new Promise(function(resolve) {
+    var settled = 0;
+    var needed  = 2; // images + fonts
+    var timer   = setTimeout(resolve, 5000);
+    function finish() {
+      settled++;
+      if (settled >= needed) { clearTimeout(timer); resolve(); }
+    }
+
+    // Wait for images
+    var imgs    = Array.from(doc.querySelectorAll('img'));
+    var pending = imgs.filter(function(img) { return !img.complete; });
+    if (pending.length === 0) {
+      finish();
+    } else {
+      var imgDone = 0;
+      pending.forEach(function(img) {
+        function imgFinish() { imgDone++; if (imgDone >= pending.length) finish(); }
+        img.addEventListener('load',  imgFinish, { once: true });
+        img.addEventListener('error', imgFinish, { once: true });
+      });
+    }
+
+    // Wait for fonts (inlined base64 fonts load fast but still need a tick to apply)
+    if (doc.fonts && doc.fonts.ready) {
+      doc.fonts.ready.then(finish).catch(finish);
+    } else {
+      finish();
+    }
+  });
+}
+
+// Wait until the DOM stops changing (JS finished injecting content), up to maxWait ms.
+// Polls the element count every 200ms; resolves when stable for two consecutive checks.
+function waitForDomStability(doc, win) {
+  return new Promise(function(resolve) {
+    var maxWait   = 10000;
+    var interval  = 200;
+    var stable    = 0;
+    var needed    = 3; // three consecutive stable snapshots = done
+    var prev      = -1;
+    var elapsed   = 0;
+    var tick = setInterval(function() {
+      elapsed += interval;
+      var count = doc.querySelectorAll('*').length;
+      if (count === prev) {
+        stable++;
+        if (stable >= needed) { clearInterval(tick); resolve(); return; }
+      } else {
+        stable = 0;
+        prev   = count;
+      }
+      if (elapsed >= maxWait) { clearInterval(tick); resolve(); }
+    }, interval);
+  });
+}
+
+var TEXT_TAGS   = new Set(['p','h1','h2','h3','h4','h5','h6','label','li','td','th','caption','dt','dd','figcaption','blockquote','cite','time','mark','small','pre','address']);
+var INLINE_TAGS = new Set(['span','a','strong','em','b','i','u','s','abbr','code','q','sub','sup','bdi','bdo']);
+var SKIP_TAGS   = new Set(['script','style','meta','link','noscript','head','title','base','template','br','wbr','slot']);
+var FORM_TAGS   = new Set(['input','textarea','select']);
+
+async function walkDOM(el, win, depth) {
+  if (!el || !el.tagName) return null;
+  if (depth > 80) return null;
+  var tag = el.tagName.toLowerCase();
+  if (SKIP_TAGS.has(tag)) return null;
+
+  var rect   = el.getBoundingClientRect();
+  var styles = win.getComputedStyle(el);
+
+  if (styles.display === 'none' || styles.visibility === 'hidden') return null;
+  if (parseFloat(styles.opacity) < 0.01) return null;
+  // Skip fixed-position elements — they're viewport-locked (chat widgets, sticky CTAs,
+  // cookie banners) and would appear at the wrong position in a full-page capture.
+  if (styles.position === 'fixed') return null;
+  if (rect.width < 1) return null;
+  // For leaf elements (no children) skip if height is near zero.
+  // For container elements keep going even if they appear collapsed — their children
+  // may have real dimensions (common when external CSS fails to load and a flex/grid
+  // parent loses its own height while children remain correctly sized).
+  var isLeafEl = (el.children.length === 0);
+  if (rect.height < 0.5 && isLeafEl) return null;
+  // Hard cap — skip truly invisible containers too deep to be useful
+  if (rect.height < 0.5 && rect.width < 2 && !isLeafEl) return null;
+
+  var name = buildName(el, tag);
+
+  // ── SVG: pass as native vector string ───────────────────────────────────────
+  if (tag === 'svg') return svgToNode(el, rect, name);
+
+  // ── Canvas ──────────────────────────────────────────────────────────────────
+  if (tag === 'canvas') {
+    try {
+      return { type:'image', name:name, x:rect.left, y:rect.top,
+               width:Math.max(rect.width,1), height:Math.max(rect.height,1),
+               imageData: el.toDataURL('image/png') };
+    } catch(e) { return null; }
+  }
+
+  // ── <picture> ───────────────────────────────────────────────────────────────
+  if (tag === 'picture') {
+    var pImg = el.querySelector('img');
+    if (!pImg) return null;
+    var pRect = pImg.getBoundingClientRect();
+    return { type:'image', name:name,
+             x: Math.max(rect.left, pRect.left), y: Math.max(rect.top, pRect.top),
+             width:Math.max(rect.width, pRect.width, 1), height:Math.max(rect.height, pRect.height, 1),
+             imageData: await imgToDataUrl(pImg) };
+  }
+
+  // ── <img> ───────────────────────────────────────────────────────────────────
+  if (tag === 'img') {
+    return { type:'image', name:name, x:rect.left, y:rect.top,
+             width:Math.max(rect.width,1), height:Math.max(rect.height,1),
+             imageData: await imgToDataUrl(el) };
+  }
+
+  // ── <input type="image"> ────────────────────────────────────────────────────
+  if (tag === 'input' && el.type === 'image') {
+    var iSrc = el.currentSrc || el.src || el.getAttribute('src') || '';
+    if (iSrc) {
+      var iImg = new Image();
+      iImg.src = iSrc;
+      return { type:'image', name:name, x:rect.left, y:rect.top,
+               width:Math.max(rect.width,1), height:Math.max(rect.height,1),
+               imageData: await imgToDataUrl(iImg) };
+    }
+  }
+
+  // ── <video> ─────────────────────────────────────────────────────────────────
+  if (tag === 'video') {
+    try {
+      var vc = document.createElement('canvas');
+      vc.width = Math.round(rect.width); vc.height = Math.round(rect.height);
+      vc.getContext('2d').drawImage(el, 0, 0, vc.width, vc.height);
+      return { type:'image', name:name, x:rect.left, y:rect.top,
+               width:Math.max(rect.width,1), height:Math.max(rect.height,1),
+               imageData: vc.toDataURL('image/jpeg', 0.9) };
+    } catch(e) { return null; }
+  }
+
+  // ── <hr> — horizontal rule / divider ────────────────────────────────────────
+  if (tag === 'hr') {
+    var hrBorderColor = parseColor(styles.borderTopColor || styles.borderColor);
+    var hrBg = parseColor(styles.backgroundColor);
+    return {
+      type:'frame', name:'divider', x:rect.left, y:rect.top,
+      width:Math.max(rect.width,1), height:Math.max(rect.height,1),
+      backgroundColor: hrBg && hrBg.a > 0.01 ? hrBg : (hrBorderColor || { r:0.78, g:0.78, b:0.78, a:1 }),
+      children:[]
+    };
+  }
+
+  // ── Form controls ────────────────────────────────────────────────────────────
+  if (FORM_TAGS.has(tag)) {
+    var fNode = buildFrameData(el, rect, styles, name, win);
+    var fText = (el.value || el.placeholder || el.textContent || '').trim();
+    fNode.children = fText ? [buildTextData(rect, styles, name+'-txt', fText)] : [];
+    return fNode;
+  }
+
+  // ── Pure text leaf ───────────────────────────────────────────────────────────
+  if (isTextLeaf(el, tag)) {
+    var leafText = (el.innerText || el.textContent || '').trim();
+    if (leafText) return buildTextData(rect, styles, name, leafText);
+  }
+
+  // ── Container frame ──────────────────────────────────────────────────────────
+  var node = buildFrameData(el, rect, styles, name, win);
+  var children = [];
+
+  // ── CSS background-image: url(...) — capture as child image node ─────────────
+  var bgImgUrl = extractBgImageUrl(styles.backgroundImage);
+  if (bgImgUrl) {
+    var bgImgData = await fetchBgImageDataUrl(bgImgUrl);
+    if (bgImgData) {
+      children.push({
+        type: 'image', name: name + '-bg',
+        x: rect.left, y: rect.top,
+        width: Math.max(rect.width, 1), height: Math.max(rect.height, 1),
+        imageData: bgImgData
+      });
+    }
+  }
+
+  // Pseudo-elements ::marker, ::before, ::after
+  var mkr = getPseudoNode(el, win, '::marker', rect, name+'::marker');
+  if (mkr) children.unshift(mkr); // markers go first (left of content)
+  var bef = getPseudoNode(el, win, '::before', rect, name+'::before');
+  if (bef) children.push(bef);
+
+  for (var ci = 0; ci < el.childNodes.length; ci++) {
+    var childN = el.childNodes[ci];
+    if (childN.nodeType === 3) {
+      // Raw text node — capture with parent typography styles so mixed content isn't dropped
+      var rawText = childN.textContent.trim();
+      if (rawText) children.push(buildTextData(rect, styles, name + '-text', rawText));
+    } else if (childN.nodeType === 1) {
+      var cn = await walkDOM(childN, win, depth + 1);
+      if (cn) children.push(cn);
+    }
+  }
+  // Also walk shadow roots (Web Components / some UI frameworks inject content here)
+  if (el.shadowRoot) {
+    for (var si = 0; si < el.shadowRoot.children.length; si++) {
+      var sn = await walkDOM(el.shadowRoot.children[si], win, depth + 1);
+      if (sn) children.push(sn);
+    }
+  }
+
+  var aft = getPseudoNode(el, win, '::after', rect, name+'::after');
+  if (aft) children.push(aft);
+
+  // No child elements found but element has text
+  if (children.length === 0) {
+    var ownText = (el.innerText || el.textContent || '').trim();
+    if (ownText && ownText.length < 2000) {
+      // Interactive elements keep their frame (background, border, padding) and nest text inside
+      if (tag === 'button' || tag === 'a') {
+        children.push(buildTextData(rect, styles, name + '-txt', ownText));
+      } else {
+        // For plain text containers, return a flat text node (no redundant wrapper frame)
+        return buildTextData(rect, styles, name, ownText);
+      }
+    }
+  }
+
+  // Safety: if overflow:hidden would clip ALL children (none fall inside parent bounds),
+  // disable clipping — better to show content outside bounds than hide everything.
+  if (node.clipsContent && children.length > 0) {
+    var anyInside = children.some(function(c) {
+      return c.x < node.x + node.width  && c.x + (c.width  || 0) > node.x &&
+             c.y < node.y + node.height && c.y + (c.height || 0) > node.y;
+    });
+    if (!anyInside) node.clipsContent = false;
+  }
+
+  node.children = children;
+  return node;
+}
+
+// ─── Pseudo-element capture ────────────────────────────────────────────────────
+function getPseudoNode(el, win, pseudo, parentRect, name) {
+  try {
+    var cs = win.getComputedStyle(el, pseudo);
+    if (!cs || cs.content === 'none' || cs.content === '' || cs.display === 'none') return null;
+    // Estimate pseudo-element size — 'auto' means browser-computed, treat as zero for fallback
+    var w = cs.width  === 'auto' ? 0 : (parseFloat(cs.width)  || 0);
+    var h = cs.height === 'auto' ? 0 : (parseFloat(cs.height) || 0);
+    var bg = parseColor(cs.backgroundColor);
+    var hasBg = bg && bg.a > 0.01;
+    var hasRadius = parseFloat(cs.borderRadius) > 0;
+    if (w < 1 || h < 1) {
+      // Visual dot bullet (background-color + border-radius with no text content)
+      if (hasBg || hasRadius) {
+        w = w < 1 ? 6 : w;
+        h = h < 1 ? 6 : h;
+      } else {
+        // String marker (e.g. list number "1." or bullet "•" via content or ::marker)
+        var contentVal = cs.content || '';
+        if (contentVal !== 'none' && contentVal !== 'normal') {
+          var bulletText = contentVal.replace(/^["']|["']$/g, '').trim();
+          if (bulletText) {
+            var parentStyles = win.getComputedStyle(el);
+            var markerNode = buildTextData(parentRect, parentStyles, name, bulletText);
+            // Shift left of content; right-align so it sits flush against the text edge
+            var markerW = parseFloat(cs.width) || 24;
+            markerNode.x = parentRect.left - markerW;
+            markerNode.textAlignHorizontal = 'RIGHT';
+            return markerNode;
+          }
+        }
+        return null;
+      }
+    }
+    var top  = parseFloat(cs.top)  || 0;
+    var left = parseFloat(cs.left) || 0;
+    var bg   = parseColor(cs.backgroundColor);
+    var grad = parseGradient(cs.backgroundImage);
+    return {
+      type: 'frame', name: name,
+      x: parentRect.left + left,
+      y: parentRect.top  + top,
+      width: Math.max(w, 1), height: Math.max(h, 1),
+      backgroundColor:  bg && bg.a > 0.01 ? bg : undefined,
+      cornerRadius:     parseFloat(cs.borderRadius) || undefined,
+      gradientFill:     grad || undefined,
+      children: []
+    };
+  } catch(e) { return null; }
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+function buildName(el, tag) {
+  var name = tag;
+  if (el.id) name += '#' + el.id;
+  else if (el.className && typeof el.className === 'string') {
+    var cls = el.className.trim().split(/\s+/)[0];
+    if (cls) name += '.' + cls;
+  }
+  return name.slice(0, 60);
+}
+
+function isTextLeaf(el, tag) {
+  // Buttons and links must render as frames (preserve bg, border, padding + nested text)
+  if (tag === 'button' || tag === 'a') return false;
+  if (el.children.length === 0) return true;
+  if (TEXT_TAGS.has(tag) || INLINE_TAGS.has(tag)) {
+    // <br> and <wbr> are line-break elements — treat them as inline so a <p> with
+    // embedded <br> is captured as a single multi-line text node instead of two
+    // separate text nodes that overlap at the same rect position.
+    return Array.from(el.children).every(function(c) {
+      var ct = c.tagName.toLowerCase();
+      return INLINE_TAGS.has(ct) || ct === 'br' || ct === 'wbr';
+    });
+  }
+  return false;
+}
+
+async function imgToDataUrl(img) {
+  var src = img.currentSrc || img.src || '';
+  if (!src) return null;
+  if (src.startsWith('data:')) return src;
+
+  async function fetchAsBase64(url) {
+    var res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var buf = await res.arrayBuffer();
+    var bytes = new Uint8Array(buf);
+    var bin = '';
+    // Chunking prevents "Maximum call stack size exceeded" on large images
+    for (var i = 0; i < bytes.length; i += 8192) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    }
+    var ext  = src.split('?')[0].split('.').pop().toLowerCase();
+    var mime = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', webp:'image/webp', gif:'image/gif', svg:'image/svg+xml' }[ext] || 'image/png';
+    return 'data:' + mime + ';base64,' + btoa(bin);
+  }
+
+  // 1. Canvas draw — fast path, works for same-origin images
+  try {
+    var c = document.createElement('canvas');
+    c.width  = img.naturalWidth  || img.width  || 1;
+    c.height = img.naturalHeight || img.height || 1;
+    c.getContext('2d').drawImage(img, 0, 0);
+    var data = c.toDataURL('image/png');
+    if (data && data !== 'data:,') return data;
+  } catch(e) {} // Fails silently if canvas is tainted by CORS
+
+  // 2. Direct fetch
+  try { return await fetchAsBase64(src); } catch(e) {}
+
+  // 3. CORS proxy as last resort
+  try { return await fetchAsBase64('https://corsproxy.io/?' + encodeURIComponent(src)); } catch(e) {}
+
+  // 4. Return null — code.ts will render a safe placeholder instead of crashing
+  return null;
+}
+
+function extractBgImageUrl(bgImage) {
+  if (!bgImage || bgImage === 'none') return null;
+  // Only capture url(...) backgrounds — gradients are handled separately
+  if (bgImage.indexOf('gradient') !== -1) return null;
+  var m = bgImage.match(/url\(['"]?([^'")]+)['"]?\)/);
+  return m ? m[1] : null;
+}
+
+async function fetchBgImageDataUrl(url) {
+  if (!url) return null;
+  if (url.startsWith('data:')) return url;
+
+  async function fetchAsBase64(fetchUrl) {
+    var res = await fetch(fetchUrl, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var buf = await res.arrayBuffer();
+    var bytes = new Uint8Array(buf);
+    var bin = '';
+    for (var i = 0; i < bytes.length; i += 8192) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    }
+    return 'data:image/png;base64,' + btoa(bin);
+  }
+
+  // 1. Direct fetch
+  try { return await fetchAsBase64(url); } catch(e) {}
+
+  // 2. CORS proxy fallback
+  try { return await fetchAsBase64('https://corsproxy.io/?' + encodeURIComponent(url)); } catch(e) {}
+
+  return null;
+}
+
+function svgToNode(el, rect, name) {
+  try {
+    var w = Math.max(Math.ceil(rect.width), 1);
+    var h = Math.max(Math.ceil(rect.height), 1);
+    var clone = el.cloneNode(true);
+    clone.setAttribute('width',  w);
+    clone.setAttribute('height', h);
+    if (!clone.getAttribute('viewBox')) clone.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    if (!clone.getAttribute('xmlns'))   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+    // Resolve <use> sprite references — inline symbol/path content so icons aren't blank
+    var useEls = clone.querySelectorAll('use');
+    useEls.forEach(function(useEl) {
+      var href = useEl.getAttribute('href') || useEl.getAttribute('xlink:href') || '';
+      if (!href.startsWith('#')) return; // skip external sprite sheets
+      var id = href.slice(1);
+      var symbol = document.getElementById(id);
+      if (!symbol) return;
+      var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      var xform = useEl.getAttribute('transform');
+      if (xform) g.setAttribute('transform', xform);
+      var ux = useEl.getAttribute('x'), uy = useEl.getAttribute('y');
+      if (ux || uy) g.setAttribute('transform', 'translate(' + (ux||0) + ',' + (uy||0) + ')');
+      var symClone = symbol.cloneNode(true);
+      while (symClone.firstChild) g.appendChild(symClone.firstChild);
+      useEl.parentNode.replaceChild(g, useEl);
+    });
+
+    // Apply computed fill/stroke so icons using currentColor don't render as solid black
+    var svgCS = window.getComputedStyle(el);
+    var computedFill   = svgCS.fill   || '';
+    var computedStroke = svgCS.stroke || '';
+    var computedColor  = svgCS.color  || '';
+    // currentColor resolves to the element's CSS color — apply it explicitly
+    var fillVal = computedFill;
+    if (!fillVal || fillVal === 'none' || fillVal === 'currentColor' ||
+        fillVal === 'rgb(0, 0, 0)' || fillVal === 'rgba(0, 0, 0, 1)') {
+      if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') fillVal = computedColor;
+    }
+    if (fillVal && fillVal !== 'none' && !clone.hasAttribute('fill')) {
+      clone.setAttribute('fill', fillVal);
+    }
+    if (computedStroke && computedStroke !== 'none' && computedStroke !== 'rgba(0, 0, 0, 0)' &&
+        !clone.hasAttribute('stroke')) {
+      clone.setAttribute('stroke', computedStroke);
+    }
+
+    var svgContent = new XMLSerializer().serializeToString(clone);
+    return Promise.resolve({ type:'svg', name:name, x:rect.left, y:rect.top,
+                             width:w, height:h, svgContent:svgContent });
+  } catch(e) { return Promise.resolve(null); }
+}
+
+// ─── Style parsers ─────────────────────────────────────────────────────────────
+function parseColor(css) {
+  if (!css || css === 'transparent' || css === 'none') return null;
+  var m = css.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/);
+  if (!m) {
+    // Try hex
+    var hx = css.match(/^#([0-9a-fA-F]{3,8})$/);
+    if (hx) {
+      var h = hx[1];
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      return { r: parseInt(h.slice(0,2),16)/255, g: parseInt(h.slice(2,4),16)/255,
+               b: parseInt(h.slice(4,6),16)/255, a: h.length === 8 ? parseInt(h.slice(6,8),16)/255 : 1 };
+    }
+    return null;
+  }
+  return { r: +m[1]/255, g: +m[2]/255, b: +m[3]/255, a: m[4] !== undefined ? +m[4] : 1 };
+}
+
+function parsePx(val) { return parseFloat(val) || 0; }
+
+function fontWeightToStyle(w) {
+  var n = parseInt(w) || 400;
+  if (n <= 100) return 'Thin';
+  if (n <= 200) return 'Extra Light';
+  if (n <= 300) return 'Light';
+  if (n <= 400) return 'Regular';
+  if (n <= 500) return 'Medium';
+  if (n <= 600) return 'Semi Bold';
+  if (n <= 700) return 'Bold';
+  if (n <= 800) return 'Extra Bold';
+  return 'Black';
+}
+
+function mapJustify(v) {
+  if (v === 'center') return 'CENTER';
+  if (v === 'flex-end' || v === 'end') return 'MAX';
+  if (v === 'space-between') return 'SPACE_BETWEEN';
+  return 'MIN';
+}
+function mapAlign(v) {
+  if (v === 'center') return 'CENTER';
+  if (v === 'flex-end' || v === 'end') return 'MAX';
+  return 'MIN';
+}
+function mapTextAlign(v) {
+  if (v === 'center') return 'CENTER';
+  if (v === 'right')  return 'RIGHT';
+  if (v === 'justify') return 'JUSTIFIED';
+  return 'LEFT';
+}
+
+function parseShadows(boxShadow) {
+  if (!boxShadow || boxShadow === 'none') return [];
+  var shadows = [];
+  // Split on commas NOT inside parentheses
+  var parts = [], depth = 0, cur = '';
+  for (var i = 0; i < boxShadow.length; i++) {
+    var ch = boxShadow[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) { parts.push(cur.trim()); cur = ''; continue; }
+    cur += ch;
+  }
+  if (cur.trim()) parts.push(cur.trim());
+
+  for (var pi = 0; pi < parts.length; pi++) {
+    var part  = parts[pi];
+    var inset = part.includes('inset');
+    var cm    = part.match(/rgba?\([^)]+\)/);
+    if (!cm) continue;
+    var color = parseColor(cm[0]);
+    if (!color) continue;
+    var numStr = part.replace(cm[0], '').replace('inset', '').trim();
+    var nums   = numStr.split(/\s+/).map(parseFloat).filter(function(n){ return !isNaN(n); });
+    if (nums.length < 2) continue;
+    shadows.push({
+      type: inset ? 'INNER_SHADOW' : 'DROP_SHADOW',
+      color: color,
+      offsetX: nums[0] || 0, offsetY: nums[1] || 0,
+      blur: nums[2] || 0,    spread: nums[3] || 0,
+      visible: true
+    });
+  }
+  return shadows;
+}
+
+function parseGradient(bgImage) {
+  if (!bgImage || bgImage === 'none') return null;
+
+  function splitArgs(str) {
+    var parts = [], depth = 0, cur = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') depth--;
+      else if (ch === ',' && depth === 0) { parts.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) parts.push(cur.trim());
+    return parts;
+  }
+
+  function parseStops(args) {
+    var stops = [], autoIdx = 0;
+    for (var i = 0; i < args.length; i++) {
+      var p = args[i];
+      var cm = p.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/);
+      if (!cm) continue;
+      var c = parseColor(cm[0]);
+      if (!c) continue;
+      var pctM = p.match(/([\d.]+)%/);
+      var pos  = pctM ? parseFloat(pctM[1]) / 100 : autoIdx / Math.max(args.length - 1, 1);
+      stops.push({ position: pos, color: c });
+      autoIdx++;
+    }
+    return stops;
+  }
+
+  var linM = bgImage.match(/linear-gradient\(([^)]+(?:\([^)]*\)[^)]*)*)\)/);
+  var radM = bgImage.match(/radial-gradient\(([^)]+(?:\([^)]*\)[^)]*)*)\)/);
+
+  if (linM) {
+    var args  = splitArgs(linM[1]);
+    var angle = 180;
+    var aM = linM[1].match(/([\d.]+)deg/);
+    if (aM) { angle = parseFloat(aM[1]); }
+    else if (/to\s+top/.test(linM[1]))    { angle = 0;   }
+    else if (/to\s+right/.test(linM[1]))  { angle = 90;  }
+    else if (/to\s+bottom/.test(linM[1])) { angle = 180; }
+    else if (/to\s+left/.test(linM[1]))   { angle = 270; }
+    var stops = parseStops(args);
+    if (stops.length >= 2) return { type: 'LINEAR_GRADIENT', stops: stops, angle: angle };
+  }
+
+  if (radM) {
+    var rStops = parseStops(splitArgs(radM[1]));
+    if (rStops.length >= 2) return { type: 'RADIAL_GRADIENT', stops: rStops };
+  }
+  return null;
+}
+
+function parseRotation(transform) {
+  if (!transform || transform === 'none') return 0;
+  var m = transform.match(/matrix\(([^)]+)\)/);
+  if (m) {
+    var v = m[1].split(',').map(parseFloat);
+    return Math.round(Math.atan2(v[1], v[0]) * (180 / Math.PI));
+  }
+  var r = transform.match(/rotate\(([-\d.]+)deg\)/);
+  return r ? parseFloat(r[1]) : 0;
+}
+
+function parseFilterBlur(filter) {
+  if (!filter || filter === 'none') return 0;
+  var m = filter.match(/blur\(([\d.]+)px\)/);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+// ─── Frame + Text builders ─────────────────────────────────────────────────────
+function buildFrameData(el, rect, styles, name, win) {
+  var bgColor = parseColor(styles.backgroundColor);
+  var grad    = parseGradient(styles.backgroundImage);
+
+  // Individual corner radii
+  var crTL = parsePx(styles.borderTopLeftRadius);
+  var crTR = parsePx(styles.borderTopRightRadius);
+  var crBR = parsePx(styles.borderBottomRightRadius);
+  var crBL = parsePx(styles.borderBottomLeftRadius);
+  var allSame = crTL === crTR && crTL === crBR && crTL === crBL;
+
+  // Per-side border widths — preserve all four independently
+  var bwTop = parsePx(styles.borderTopWidth);
+  var bwR   = parsePx(styles.borderRightWidth);
+  var bwB   = parsePx(styles.borderBottomWidth);
+  var bwL   = parsePx(styles.borderLeftWidth);
+  var maxBw = Math.max(bwTop, bwR, bwB, bwL);
+
+  // Pick the color of the heaviest border side
+  var strokeColor = null;
+  if (maxBw > 0) {
+    if (maxBw === bwTop)       strokeColor = parseColor(styles.borderTopColor);
+    else if (maxBw === bwB)    strokeColor = parseColor(styles.borderBottomColor);
+    else if (maxBw === bwL)    strokeColor = parseColor(styles.borderLeftColor);
+    else                       strokeColor = parseColor(styles.borderRightColor);
+    if (!strokeColor)          strokeColor = parseColor(styles.borderColor);
+  }
+
+  // Detect single-side border (e.g. border-bottom only)
+  var perSide = (bwTop !== bwR || bwTop !== bwB || bwTop !== bwL);
+
+  var shadows  = parseShadows(styles.boxShadow);
+  var rotation = parseRotation(styles.transform);
+  var blur     = parseFilterBlur(styles.filter);
+
+  // backdrop-filter blur (glassmorphism)
+  var backdropBlur = parseFilterBlur(styles.backdropFilter || styles.webkitBackdropFilter || '');
+
+  // CSS outline — treated as an outer spread shadow so it appears in Figma
+  var outlineW = parsePx(styles.outlineWidth);
+  if (outlineW > 0 && styles.outlineStyle !== 'none') {
+    var outlineColor = parseColor(styles.outlineColor);
+    if (outlineColor) {
+      shadows.push({
+        type: 'DROP_SHADOW',
+        color: outlineColor,
+        offsetX: 0, offsetY: 0,
+        blur: 0, spread: outlineW,
+        visible: true
+      });
+    }
+  }
+
+  var isFlex = styles.display === 'flex' || styles.display === 'inline-flex';
+  var isH = isFlex && styles.flexDirection !== 'column' && styles.flexDirection !== 'column-reverse';
+  var isV = isFlex && (styles.flexDirection === 'column' || styles.flexDirection === 'column-reverse');
+  // layoutMode is NONE for non-flex elements — no forcing on interactive elements
+  var finalLayoutMode = isH ? 'HORIZONTAL' : isV ? 'VERTICAL' : 'NONE';
+
+  // grid — extract gap but don't force auto-layout direction
+  var isGrid = styles.display === 'grid' || styles.display === 'inline-grid';
+  var gridGap = parsePx(styles.gap) || Math.max(parsePx(styles.rowGap), parsePx(styles.columnGap));
+
+  // List items: force horizontal so bullet/number sits left of text content
+  var isListItem = (el.tagName && el.tagName.toLowerCase() === 'li') || styles.display === 'list-item';
+
+  // Auto-detect vertical stacking for block/list-item containers without explicit flex
+  var blockVertical = false;
+  var blockSpacing = 0;
+  if (!isH && !isV && el.children.length > 1) {
+    var visibleChildren = Array.from(el.children).filter(function(c) {
+      var cs = win.getComputedStyle(c);
+      return cs.display !== 'none' && parseFloat(cs.opacity) > 0.01;
+    });
+    if (visibleChildren.length >= 2) {
+      // Smart stack inference: verify ALL children flow vertically (each top >= prev bottom - 2px)
+      var allVertical = true;
+      var prevR = visibleChildren[0].getBoundingClientRect();
+      for (var ci = 1; ci < visibleChildren.length; ci++) {
+        var curR = visibleChildren[ci].getBoundingClientRect();
+        if (curR.top < prevR.bottom - 2) { allVertical = false; break; }
+        prevR = curR;
+      }
+      if (allVertical) {
+        blockVertical = true;
+        // Physical pixel gap between first two stacked children
+        var sr0 = visibleChildren[0].getBoundingClientRect();
+        var sr1 = visibleChildren[1].getBoundingClientRect();
+        blockSpacing = Math.max(0, Math.round(sr1.top - sr0.bottom));
+      }
+    }
+  }
+
+  var blendMode = styles.mixBlendMode && styles.mixBlendMode !== 'normal' ? styles.mixBlendMode : undefined;
+
+  return {
+    type: 'frame', name: name,
+    display: styles.display,
+    x: rect.left, y: rect.top,
+    width:  Math.max(rect.width,  1),
+    height: Math.max(rect.height, 1),
+    backgroundColor: bgColor && bgColor.a > 0.01 && !grad ? bgColor : undefined,
+    gradientFill:    grad || undefined,
+    cornerRadius:    allSame && crTL > 0 ? Math.round(crTL) : undefined,
+    cornerRadii:    !allSame && (crTL||crTR||crBR||crBL) ? [Math.round(crTL),Math.round(crTR),Math.round(crBR),Math.round(crBL)] : undefined,
+    strokeColor:     strokeColor || undefined,
+    strokeWeight:    !perSide && maxBw > 0 ? maxBw : undefined,
+    strokeWeights:   perSide && maxBw > 0 ? { top: bwTop, right: bwR, bottom: bwB, left: bwL } : undefined,
+    opacity:         parseFloat(styles.opacity) || 1,
+    rotation:        rotation || undefined,
+    shadows:         shadows.length > 0 ? shadows : undefined,
+    blur:            blur > 0 ? blur : undefined,
+    backdropBlur:    backdropBlur > 0 ? backdropBlur : undefined,
+    blendMode:       blendMode,
+    clipsContent:    styles.overflow === 'hidden' || styles.overflow === 'clip',
+    layoutMode:      finalLayoutMode,
+    itemSpacing:     isGrid ? gridGap : blockVertical ? blockSpacing : (parsePx(styles.gap) || parsePx(styles.columnGap) || 0),
+    paddingTop:      parsePx(styles.paddingTop),
+    paddingRight:    parsePx(styles.paddingRight),
+    paddingBottom:   parsePx(styles.paddingBottom),
+    paddingLeft:     parsePx(styles.paddingLeft),
+    primaryAxisAlignItems: isListItem ? 'MIN' : mapJustify(styles.justifyContent),
+    counterAxisAlignItems: mapAlign(styles.alignItems),
+    // CSS position and flex-child properties for auto-layout fidelity
+    position: styles.position,
+    flexGrow:    parseFloat(styles.flexGrow)   || 0,
+    flexShrink:  parseFloat(styles.flexShrink) || 1,
+    alignSelf:   styles.alignSelf || 'auto',
+    flexWrap:    styles.flexWrap,
+    rowGap:      parsePx(styles.rowGap) || parsePx(styles.gap) || 0,
+    children: []
+  };
+}
+
+function buildTextData(rect, styles, name, text) {
+  var family = (styles.fontFamily || 'Inter').split(',')[0].trim().replace(/['"]/g, '') || 'Inter';
+  // Normalize 'normal' line-height so Figma doesn't inflate text box heights arbitrarily
+  var rawLineHeight = styles.lineHeight === 'normal'
+    ? (Math.round(parseFloat(styles.fontSize) * 1.2) + 'px')
+    : styles.lineHeight;
+  var lh = parsePx(rawLineHeight);
+  var ls = parsePx(styles.letterSpacing);
+
+  // Apply CSS text-transform so the Figma text matches what's visible in the browser
+  var displayText = text;
+  var tt = styles.textTransform;
+  if (tt === 'uppercase')  displayText = text.toUpperCase();
+  else if (tt === 'lowercase')  displayText = text.toLowerCase();
+  else if (tt === 'capitalize') displayText = text.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+
+  // Build the Figma font style string from weight + italic
+  var weightStyle = fontWeightToStyle(styles.fontWeight);
+  var isItalic    = styles.fontStyle === 'italic' || styles.fontStyle === 'oblique';
+  var fontStyle   = isItalic
+    ? (weightStyle === 'Regular' ? 'Italic' : weightStyle + ' Italic')
+    : weightStyle;
+
+  // Map CSS text-decoration to Figma values
+  var decorLine   = styles.textDecorationLine || styles.textDecoration || '';
+  var textDecoration = decorLine.includes('underline')    ? 'UNDERLINE'
+                     : decorLine.includes('line-through') ? 'STRIKETHROUGH'
+                     : 'NONE';
+
+  var fs = parsePx(styles.fontSize) || 14;
+  return {
+    type: 'text', name: name,
+    x: rect.left, y: rect.top,
+    width:  Math.max(rect.width, 1),
+    height: Math.max(rect.height, 1),
+    characters:          displayText,
+    fontSize:            fs,
+    fontFamily:          family,
+    fontStyle:           fontStyle,
+    textColor:           parseColor(styles.color),
+    textAlignHorizontal: mapTextAlign(styles.textAlign),
+    lineHeightPx:        lh > 0 ? lh : undefined,
+    letterSpacing:       ls !== 0 ? ls : undefined,
+    textDecoration:      textDecoration !== 'NONE' ? textDecoration : undefined,
+    opacity:             parseFloat(styles.opacity) || 1,
+    // CSS position and flex-child properties
+    position: styles.position,
+    flexGrow:    parseFloat(styles.flexGrow) || 0,
+    flexShrink:  parseFloat(styles.flexShrink) || 1,
+    alignSelf:   styles.alignSelf || 'auto',
+  };
+}
+
+// ─── Recents ──────────────────────────────────────────────────────────────────
+function addRecent(name, type) {
+  recentImports.unshift({ name: name || 'import', type: type || 'file', time: 'just now' });
+  if (recentImports.length > 10) recentImports.pop();
+}
+function recentItemHtml(r, size) {
+  const grads = {
+    url:  'linear-gradient(135deg,#47CAD8,#2596a4)',
+    file: 'linear-gradient(135deg,#244448,#0a181a)',
+  };
+  const s = size || 14;
+  const icons = {
+    url:  '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg>',
+    file: '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>',
+  };
+  const grad = grads[r.type] || grads.file;
+  const icon = icons[r.type] || icons.file;
+  return '<div class="recent-item">' +
+    '<div class="ri-thumb" style="background:' + grad + '">' + icon + '</div>' +
+    '<div class="ri-meta"><div class="ri-title">' + escHtml(r.name) + '</div>' +
+      '<div class="ri-sub"><span>' + r.type.toUpperCase() + '</span><span>·</span><span>' + r.time + '</span></div></div>' +
+    '<div class="ri-time">' + r.time + '</div>' +
+    '</div>';
+}
+function renderRecentsMini() {
+  const section = document.getElementById('recents-section');
+  const list    = document.getElementById('recent-list-mini');
+  if (!recentImports.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = recentImports.slice(0, 3).map(function(r) { return recentItemHtml(r, 14); }).join('');
+}
+function renderHistory() {
+  const list  = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  if (!recentImports.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = recentImports.map(function(r) { return recentItemHtml(r, 16); }).join('');
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
