@@ -57,4 +57,4 @@ html-to-figma/
 
 ## License
 
-MIT
+**All Rights Reserved.** This source code is published for reference and transparency only. Copying, redistributing, or publishing this plugin (or any derivative) to the Figma Plugin Community or any other platform is strictly prohibited without explicit written permission. See [LICENSE](./LICENSE) for full terms.
