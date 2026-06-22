@@ -18,6 +18,16 @@ A Figma plugin that imports any webpage as fully editable Figma frames — prese
 1. Open Figma → **Plugins → Development → Import plugin from manifest**
 2. Select the `manifest.json` file from this repo
 
+## Usage
+
+1. Open any Figma file
+2. Run the plugin via **Plugins → HTML to Figma**
+3. Paste a public URL into the input field
+4. Click **Import** and wait for the progress indicator to complete
+5. The converted design will appear as a new frame on your canvas
+
+> **Tip:** For best results, use URLs that don't require authentication and are not behind a bot-protection wall.
+
 ## Limitations
 
 - Pages behind authentication or bot-protection may not import correctly
