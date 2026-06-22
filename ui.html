@@ -513,6 +513,7 @@ input::placeholder,textarea::placeholder{color:var(--p-ink-dimmer);}
 <script>
 // ─── Constants ─────────────────────────────────────────────────────────────
 const PROXY_URL      = 'https://html-to-figma-proxy-flame.vercel.app/api/fetch';
+const PROXY_SECRET   = ''; // Optional: paste your PROXY_SECRET Vercel env var value here
 const EXTRACT_URL    = 'https://html-to-figma-proxy-flame.vercel.app/api/extract';
 const SCREENSHOT_URL = 'https://html-to-figma-proxy-flame.vercel.app/api/screenshot';
 
@@ -969,7 +970,8 @@ async function fetchViaProxy(url) {
   // Local URLs — always fetch directly, proxy can\'t reach these
   if (isLocalUrl(url)) {
     try { return await fetchDirect(url); } catch (err) {
-      throw new Error('Could not connect to ' + parsed.host + ' — is the server running?\n' + err.message);
+      throw new Error('Could not connect to ' + parsed.host + ' — is the server running?
+' + err.message);
     }
   }
 
@@ -987,17 +989,23 @@ async function fetchViaProxy(url) {
     res = await fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url }),
+      body: JSON.stringify({ url: url, token: PROXY_SECRET }),
     });
   } catch (err) {
     const msg = (err && err.message) ? err.message.toLowerCase() : '';
     if (!navigator.onLine) throw new Error('No internet connection — check your network and try again.');
     if (msg.includes('failed to fetch') || msg.includes('networkerror')) {
       throw new Error(
-        'Direct fetch was blocked by CORS and the proxy server is not reachable.\n\n' +
-        'To fix external URLs, deploy the proxy once:\n' +
-        '  cd proxy && vercel login && vercel --prod\n' +
-        'Then paste the URL Vercel gives you here and update PROXY_URL in ui.html.\n\n' +
+        'Direct fetch was blocked by CORS and the proxy server is not reachable.
+
+' +
+        'To fix external URLs, deploy the proxy once:
+' +
+        '  cd proxy && vercel login && vercel --prod
+' +
+        'Then paste the URL Vercel gives you here and update PROXY_URL in ui.html.
+
+' +
         'Tip: For downloaded pages, use the File tab instead.'
       );
     }
@@ -1095,7 +1103,9 @@ async function inlineExternalCss(html, baseUrl) {
       if (raw) {
         const resolved = await resolveCss(raw, href);
         const absolutized = absolutizeCssUrls(resolved, href);
-        html = html.replace(item.tag, '<style>\n' + absolutized + '\n</style>');
+        html = html.replace(item.tag, '<style>
+' + absolutized + '
+</style>');
       }
     } catch (_) {}
   }));
@@ -1277,7 +1287,8 @@ function extractDesignTokens(doc, win) {
   var tokens = {};
   var styleEls = doc.querySelectorAll('style');
   styleEls.forEach(function(s) {
-    var m, regex = /--([\w-]+)\s*:\s*([^;}\n]+)/g;
+    var m, regex = /--([\w-]+)\s*:\s*([^;}
+]+)/g;
     while ((m = regex.exec(s.textContent)) !== null) {
       tokens['--' + m[1].trim()] = m[2].trim();
     }
@@ -1420,8 +1431,8 @@ function semContainerType(tag, el, styles) {
   if (tag === 'footer') return 'footer';
   if (tag === 'section' || tag === 'article') return 'section';
   if (tag === 'button') return 'button';
-  if (/\bhero\b/.test(cls)) return 'hero';
-  if (/\bcard\b/.test(cls)) return 'card';
+  if (/hero/.test(cls)) return 'hero';
+  if (/card/.test(cls)) return 'card';
   if (styles.display === 'grid') return 'grid';
   return 'container';
 }
@@ -1445,7 +1456,8 @@ function injectPseudoFlattener(doc) {
     '*, *::before, *::after { box-sizing: border-box !important; }',
     // Ensure images don't exceed viewport width (helps with layout calculation)
     'img { max-width: 100%; height: auto; }',
-  ].join('\n');
+  ].join('
+');
   if (doc.head) doc.head.appendChild(style);
 }
 
@@ -2203,7 +2215,7 @@ function buildTextData(rect, styles, name, text) {
   var tt = styles.textTransform;
   if (tt === 'uppercase')  displayText = text.toUpperCase();
   else if (tt === 'lowercase')  displayText = text.toLowerCase();
-  else if (tt === 'capitalize') displayText = text.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  else if (tt === 'capitalize') displayText = text.replace(/\w/g, function(c) { return c.toUpperCase(); });
 
   // Build the Figma font style string from weight + italic
   var weightStyle = fontWeightToStyle(styles.fontWeight);
