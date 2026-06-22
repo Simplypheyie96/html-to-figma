@@ -1,6 +1,10 @@
 // CORS Proxy — HTML to Figma Plugin
 // Deploy: cd proxy && vercel --prod
 // Then paste the deployment URL into PROXY_URL in ui.html
+//
+// SECURITY: Set a PROXY_SECRET environment variable on Vercel to restrict access.
+// Copy the same value into PROXY_SECRET in ui.html so the plugin can authenticate.
+// Without it, the proxy is open — anyone who knows the URL can use it.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -10,8 +14,17 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+// Read secret from Vercel environment variable.
+// If not set, the proxy runs in open mode (backwards-compatible).
+const PROXY_SECRET = process.env.PROXY_SECRET ?? '';
+
 function setCors(res: VercelResponse) {
   for (const [k, v] of Object.entries(CORS)) res.setHeader(k, v);
+}
+
+function isAuthorized(body: { token?: string }): boolean {
+  if (!PROXY_SECRET) return true; // no secret configured — open proxy
+  return typeof body.token === 'string' && body.token === PROXY_SECRET;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -20,7 +33,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST')    { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const { url } = (req.body ?? {}) as { url?: string };
+  const body = (req.body ?? {}) as { url?: string; token?: string };
+
+  if (!isAuthorized(body)) {
+    res.status(401).json({ error: 'Unauthorized — set PROXY_SECRET on Vercel and pass the matching token from ui.html' });
+    return;
+  }
+
+  const { url } = body;
   if (!url || !isValidUrl(url)) {
     res.status(400).json({ error: 'Invalid or missing URL — must be http:// or https://' });
     return;
